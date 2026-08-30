@@ -1,4 +1,4 @@
-import iztro from 'iztro';
+import { astro } from 'iztro';
 
 export interface ZiweiStar {
   name: string;
@@ -70,7 +70,7 @@ export function calculateZiwei(params: {
 }): ZiweiResult {
   const { birthDate, birthTime, gender } = params;
 
-  const result = iztro.astro.bySolar(
+  const result = astro.bySolar(
     birthDate,
     birthTime,
     gender === 'male' ? 'male' : 'female',
