@@ -34,3 +34,20 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## CI/CD
+
+This project includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs on every pull request and push to `main`. The workflow performs:
+
+1. **Checkout** the code.
+2. **Setup** Node.js (v20) and cache npm dependencies.
+3. **Lint** using ESLint with Prettier.
+4. **Type-check** via `tsc --noEmit`.
+5. **Unit tests** with Jest (coverage report uploaded as artifact).
+6. **E2E tests** using Playwright (report uploaded as artifact).
+7. **Security audit** via `npm audit --audit-level=high`.
+
+To view results, navigate to the **Actions** tab in this repository. No additional secrets are required for CI. For future deployment to Vercel, add the following GitHub Secrets:
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`

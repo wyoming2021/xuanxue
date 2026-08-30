@@ -1,0 +1,309 @@
+'use client';
+
+import {
+  ArrowLeft,
+  Heart,
+  Briefcase,
+  Wallet,
+  Activity,
+  Palette,
+  Star,
+  Loader2,
+  Sparkles,
+  MapPin,
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
+import { dailyRequestSchema, safeValidate } from '@/app/lib/validation';
+import type { DailyFortune } from '@/app/types/daily';
+import { PayWall } from '@/components/PayWall';
+import { Button } from '@/components/ui/button';
+import { getDeviceId } from '@/lib/device';
+
+const ZODIACS = [
+  { name: '白羊座', symbol: '♈', dates: '3.21-4.19', element: '火' },
+  { name: '金牛座', symbol: '♉', dates: '4.20-5.20', element: '土' },
+  { name: '双子座', symbol: '♊', dates: '5.21-6.21', element: '风' },
+  { name: '巨蟹座', symbol: '♋', dates: '6.22-7.22', element: '水' },
+  { name: '狮子座', symbol: '♌', dates: '7.23-8.22', element: '火' },
+  { name: '处女座', symbol: '♍', dates: '8.23-9.22', element: '土' },
+  { name: '天秤座', symbol: '♎', dates: '9.23-10.23', element: '风' },
+  { name: '天蝎座', symbol: '♏', dates: '10.24-11.22', element: '水' },
+  { name: '射手座', symbol: '♐', dates: '11.23-12.21', element: '火' },
+  { name: '摩羯座', symbol: '♑', dates: '12.22-1.19', element: '土' },
+  { name: '水瓶座', symbol: '♒', dates: '1.20-2.18', element: '风' },
+  { name: '双鱼座', symbol: '♓', dates: '2.19-3.20', element: '水' },
+];
+
+const ELEMENT_COLORS: Record<string, string> = {
+  火: 'text-red-500',
+  土: 'text-amber-600',
+  风: 'text-blue-500',
+  水: 'text-indigo-500',
+};
+
+// Client component for PayWall (since we need to use hooks like useRouter inside)
+function PayWallClient({
+  fortuneId,
+  zodiac,
+  onRefetch,
+}: {
+  fortuneId: string;
+  zodiac: string;
+  onRefetch: () => void;
+}) {
+  const router = useRouter();
+
+  const handlePaySuccess = () => {
+    // In a real app, you might refetch the fortune or update state
+    // For now, we just show a success message and refetch
+    alert('支付成功！正在为您解锁内容...');
+    // Refetch the fortune
+    onRefetch();
+  };
+
+  return (
+    <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+      <h3 className="mb-2 font-serif text-lg font-bold">解锁完整运势</h3>
+      <p className="mb-4 text-sm text-[#57534e] dark:text-[#a8a29e]">
+        您的每日运势已经生成，需要付费解锁才能查看完整内容。
+      </p>
+      <Button onClick={handlePaySuccess} className="w-full">
+        支付解锁
+      </Button>
+    </div>
+  );
+}
+
+export default function DailyContainer() {
+  const router = useRouter();
+  const [selectedZodiac, setSelectedZodiac] = useState<string | null>(null);
+  const [fortune, setFortune] = useState<DailyFortune | null>(null);
+  const [fortuneId, setFortuneId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const fetchFortune = async (zodiac: string) => {
+    // Validate input using Zod schema
+    const validationResult = safeValidate(dailyRequestSchema, {
+      zodiac: zodiac,
+      deviceId: getDeviceId(),
+    });
+
+    if (!validationResult.success) {
+      console.error('Validation error:', validationResult.error);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/daily?zodiac=${zodiac}&deviceId=${getDeviceId()}`);
+      const data = await res.json();
+      if (data.success) {
+        setFortune(data.data.content);
+        setFortuneId(data.data.fortuneId);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Function to refetch the current fortune
+  const refetchFortune = () => {
+    if (selectedZodiac) {
+      fetchFortune(selectedZodiac);
+    }
+  };
+
+  if (!selectedZodiac) {
+    return (
+      <div>
+        <div className="page-transition">
+          <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
+            <h1 className="mb-3 font-serif text-3xl font-bold sm:text-4xl">⭐ 每日运势</h1>
+            <p className="text-[#737373] dark:text-[#78716c]">选择你的星座，查看今日运势</p>
+          </div>
+          <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+              {ZODIACS.map((z) => (
+                <button
+                  key={z.name}
+                  onClick={() => {
+                    setSelectedZodiac(z.name);
+                    fetchFortune(z.name);
+                  }}
+                  className="group flex flex-col items-center rounded-2xl border border-black/5 bg-white p-5 transition-all hover:border-indigo-300 hover:border-indigo-50/50 hover:shadow-md dark:border-white/5 dark:border-indigo-700"
+                >
+                  <span className="mb-2 text-3xl transition-transform group-hover:scale-110">
+                    {z.symbol}
+                  </span>
+                  <span className="text-sm font-medium">{z.name}</span>
+                  <span className={`mt-0.5 text-[10px] ${ELEMENT_COLORS[z.element]}`}>
+                    {z.element}象
+                  </span>
+                  <span className="text-[10px] text-[#a3a3a3]">{z.dates}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const zodiacInfo = ZODIACS.find((z) => z.name === selectedZodiac);
+
+  return (
+    <div>
+      <div className="page-transition">
+        <div className="mx-auto max-w-2xl px-4 py-12 text-center sm:px-6">
+          <button
+            onClick={() => {
+              setSelectedZodiac(null);
+              setFortune(null);
+            }}
+            className="mb-6 inline-flex items-center gap-1 text-sm text-[#737373] hover:text-[#1c1917] dark:text-[#78716c] dark:hover:text-[#e7e5e4]"
+          >
+            <ArrowLeft className="h-4 w-4" /> 返回选择星座
+          </button>
+          <div className="mb-2 text-5xl">{zodiacInfo?.symbol}</div>
+          <h1 className="mb-1 font-serif text-2xl font-bold">{selectedZodiac}今日运势</h1>
+          <p className="text-sm text-[#737373] dark:text-[#78716c]">
+            {new Date().toLocaleDateString('zh-CN', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              weekday: 'long',
+            })}
+          </p>
+        </div>
+      </div>
+      <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+        {loading ? (
+          <div className="flex flex-col items-center gap-3 py-20 text-[#737373] dark:text-[#78716c]">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span>运势加载中...</span>
+          </div>
+        ) : fortune ? (
+          <div className="space-y-6">
+            {/* 综合运势 */}
+            <div className="rounded-2xl border border-black/5 bg-white p-6 text-center dark:border-white/5 dark:bg-white/[0.03]">
+              <div className="mb-2 text-4xl">
+                {'★'.repeat(fortune.overallScore)}
+                {'☆'.repeat(5 - fortune.overallScore)}
+              </div>
+              <p className="font-serif text-lg text-indigo-600 dark:text-indigo-400">
+                {fortune.summary}
+              </p>
+              <p className="mt-2 text-sm text-[#737373] dark:text-[#78716c]">
+                {fortune.introduction}
+              </p>
+            </div>
+
+            {/* 运势卡片 */}
+            <FortuneCard
+              icon={<Heart size={18} />}
+              title="爱情运势"
+              color="pink"
+              content={fortune.love}
+              score={fortune.loveScore}
+            />
+            <FortuneCard
+              icon={<Briefcase size={18} />}
+              title="事业运势"
+              color="blue"
+              content={fortune.career}
+              score={fortune.careerScore}
+            />
+            <FortuneCard
+              icon={<Wallet size={18} />}
+              title="财富运势"
+              color="amber"
+              content={fortune.wealth}
+              score={fortune.wealthScore}
+            />
+            <FortuneCard
+              icon={<Activity size={18} />}
+              title="健康提醒"
+              color="green"
+              content={fortune.health}
+              score={fortune.healthScore}
+            />
+
+            {/* 幸运指南 */}
+            <div className="rounded-2xl border border-black/5 bg-white p-5 dark:border-white/5 dark:bg-white/[0.03]">
+              <div className="mb-3 flex items-center gap-2 text-purple-600 dark:text-purple-400">
+                <Palette size={18} />
+                <span className="font-serif font-medium">幸运指南</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm text-[#57534e] dark:text-[#a8a29e]">
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-4 w-4 rounded-full bg-indigo-500" />
+                  <span>幸运色：{fortune.luckyColor}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-indigo-600 dark:bg-indigo-900">
+                    {fortune.luckyNumber}
+                  </span>
+                  <span>幸运数字：{fortune.luckyNumber}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin size={14} className="text-indigo-500" />
+                  <span>幸运方位：{fortune.luckyDirection}</span>
+                </div>
+              </div>
+
+              {/* 付费解锁提示 */}
+              {!fortune.isUnlocked && fortuneId && (
+                <PayWallClient
+                  fortuneId={fortuneId}
+                  zodiac={selectedZodiac}
+                  onRefetch={refetchFortune}
+                />
+              )}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function FortuneCard({
+  icon,
+  title,
+  color,
+  content,
+  score,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  color: string;
+  content: string;
+  score: number;
+}) {
+  const colorMap: Record<string, string> = {
+    pink: 'text-pink-600 dark:text-pink-400',
+    blue: 'text-blue-600 dark:text-blue-400',
+    amber: 'text-amber-600 dark:text-amber-400',
+    green: 'text-green-600 dark:text-green-400',
+  };
+
+  return (
+    <div className="rounded-2xl border border-black/5 bg-white p-5 dark:border-white/5 dark:bg-white/[0.03]">
+      <div className="mb-2 flex items-center justify-between">
+        <div className={`flex items-center gap-2 ${colorMap[color]}`}>
+          {icon}
+          <span className="font-serif font-medium">{title}</span>
+        </div>
+        <div className="text-sm">
+          {'★'.repeat(score)}
+          {'☆'.repeat(5 - score)}
+        </div>
+      </div>
+      <p className="text-sm leading-relaxed text-[#57534e] dark:text-[#a8a29e]">{content}</p>
+    </div>
+  );
+}
