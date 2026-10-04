@@ -1,0 +1,53 @@
+{
+  "name": "xuanyu-core",
+  "version": "0.1.0",
+  "description": "玄语命理引擎：八字排盘、紫微斗数、星盘占星、六爻、梅花易数、合婚配对、塔罗占卜、每日运势。纯 TypeScript 计算库，无框架依赖。",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "xuanyu": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "bazi",
+    "ziwei",
+    "astrology",
+    "tarot",
+    "iching",
+    "liuyao",
+    "meihua",
+    "fortune",
+    "八字",
+    "紫微斗数",
+    "塔罗",
+    "六爻",
+    "梅花易数",
+    "合婚",
+    "每日运势"
+  ],
+  "dependencies": {
+    "iztro": "^2.6.0",
+    "lunar-javascript": "^1.7.7"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}
