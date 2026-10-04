@@ -11,11 +11,11 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { getDeviceId } from '@/lib/device';
-import { useAuth } from '@/lib/useAuth';
 
 const PLANS = [
   {
     type: 'day',
+    productKey: 'membership_day',
     name: '日卡',
     price: 1.99,
     duration: '24小时',
@@ -26,6 +26,7 @@ const PLANS = [
   },
   {
     type: 'month',
+    productKey: 'membership_month',
     name: '月卡',
     price: 19.9,
     duration: '30天',
@@ -36,6 +37,7 @@ const PLANS = [
   },
   {
     type: 'year',
+    productKey: 'membership_year',
     name: '年卡',
     price: 199,
     duration: '365天',
@@ -44,32 +46,37 @@ const PLANS = [
     features: ['全年无限次', '运势日历', '专属客服'],
     popular: false,
   },
-];
+] as const;
 
 export function MembershipDialog() {
   const [loading, setLoading] = useState<string | null>(null);
-  const { user } = useAuth();
+  const [error, setError] = useState<string | null>(null);
 
-  const handlePurchase = async (type: string, amount: number) => {
-    setLoading(type);
+  const handlePurchase = async (productKey: string) => {
+    setLoading(productKey);
+    setError(null);
     try {
       const res = await fetch('/api/payment/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          recordType: 'membership',
-          amount,
-          deviceId: user ? undefined : getDeviceId(),
-          userId: user?.userId,
-          membershipType: type,
+          // 只传 productKey；金额由服务端产品目录决定，不传 amount / userId
+          productKey,
+          deviceId: getDeviceId(),
         }),
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.data.payUrl) {
         window.open(data.data.payUrl, '_blank');
+        if (data.data.demo) {
+          setError(data.data.message || '当前为演示模式，无法完成真实支付。');
+        }
+      } else {
+        setError(data.error || '支付发起失败，请稍后再试');
       }
     } catch (err) {
-      console.error(err);
+      console.error('[MembershipDialog] 创建支付失败:', err);
+      setError('网络错误，请稍后再试');
     } finally {
       setLoading(null);
     }
@@ -157,15 +164,15 @@ export function MembershipDialog() {
                     <div className="font-serif text-xl font-bold">¥{plan.price}</div>
                     <Button
                       size="sm"
-                      onClick={() => handlePurchase(plan.type, plan.price)}
-                      disabled={loading === plan.type}
+                      onClick={() => handlePurchase(plan.productKey)}
+                      disabled={loading === plan.productKey}
                       className={`mt-2 ${
                         plan.popular
                           ? 'bg-amber-500 text-white hover:bg-amber-600'
                           : 'bg-[#1c1917] text-white hover:bg-[#292524] dark:bg-[#e7e5e4] dark:text-[#1c1917]'
                       }`}
                     >
-                      {loading === plan.type ? '...' : '购买'}
+                      {loading === plan.productKey ? '...' : '购买'}
                     </Button>
                   </div>
                 </div>
@@ -174,7 +181,24 @@ export function MembershipDialog() {
           })}
         </div>
 
-        <div className="mt-4 rounded-lg bg-[#fafaf9] p-3 text-center text-xs text-[#737373] dark:bg-white/[0.02] dark:text-[#78716c]">
+        {error && (
+          <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-center text-xs text-[#92400e] dark:bg-amber-950/30 dark:text-[#fbbf24]">
+            {error}
+          </p>
+        )}
+
+        <p className="mt-4 text-center text-[10px] text-[#a3a3a3]">
+          开通即表示同意
+          <a href="/terms" className="mx-0.5 underline hover:text-[#57534e]">
+            《用户协议》
+          </a>
+          与
+          <a href="/privacy" className="mx-0.5 underline hover:text-[#57534e]">
+            《隐私政策》
+          </a>
+        </p>
+
+        <div className="mt-2 rounded-lg bg-[#fafaf9] p-3 text-center text-xs text-[#737373] dark:bg-white/[0.02] dark:text-[#78716c]">
           💡 购买后立即生效，支持支付宝/微信支付
         </div>
       </DialogContent>

@@ -77,6 +77,21 @@ export function Footer() {
             </a>
           </div>
 
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-[#737373] dark:text-[#78716c]">
+            <a
+              href="/privacy"
+              className="transition-colors hover:text-[#1c1917] dark:hover:text-[#e7e5e4]"
+            >
+              隐私政策
+            </a>
+            <a
+              href="/terms"
+              className="transition-colors hover:text-[#1c1917] dark:hover:text-[#e7e5e4]"
+            >
+              用户协议
+            </a>
+          </div>
+
           <div className="max-w-lg text-center">
             <p className="rounded-xl bg-amber-50 px-4 py-3 text-xs leading-relaxed text-[#92400e] dark:bg-amber-950/30 dark:text-[#fbbf24]">
               ⚠️

@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server';
 
 import { getCurrentSession } from '@/lib/auth';
 import { getDevUserById } from '@/lib/dev-user-store';
+import { hasRealSupabase } from '@/lib/env';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-
-const isRealSupabase = !process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('placeholder');
 
 export async function GET() {
   try {
@@ -14,7 +13,7 @@ export async function GET() {
     }
 
     // Dev mode: read from dev user store
-    if (!isRealSupabase || session.userId.startsWith('dev-')) {
+    if (!hasRealSupabase() || session.userId.startsWith('dev-')) {
       const devUser = getDevUserById(session.userId);
       if (!devUser) {
         return NextResponse.json({ success: false, error: '用户不存在' }, { status: 404 });
@@ -40,6 +39,10 @@ export async function GET() {
     }
 
     // Production: read from database
+    if (!supabaseAdmin) {
+      return NextResponse.json({ success: false, error: '服务暂不可用' }, { status: 503 });
+    }
+
     const { data: user } = await supabaseAdmin
       .from('users')
       .select('id, email, vip_expire_time')

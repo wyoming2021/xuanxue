@@ -9,16 +9,13 @@ import {
   Palette,
   Star,
   Loader2,
-  Sparkles,
   MapPin,
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { dailyRequestSchema, safeValidate } from '@/app/lib/validation';
 import type { DailyFortune } from '@/app/types/daily';
 import { PayWall } from '@/components/PayWall';
-import { Button } from '@/components/ui/button';
 import { getDeviceId } from '@/lib/device';
 
 const ZODIACS = [
@@ -43,44 +40,11 @@ const ELEMENT_COLORS: Record<string, string> = {
   水: 'text-indigo-500',
 };
 
-// Client component for PayWall (since we need to use hooks like useRouter inside)
-function PayWallClient({
-  fortuneId,
-  zodiac,
-  onRefetch,
-}: {
-  fortuneId: string;
-  zodiac: string;
-  onRefetch: () => void;
-}) {
-  const router = useRouter();
-
-  const handlePaySuccess = () => {
-    // In a real app, you might refetch the fortune or update state
-    // For now, we just show a success message and refetch
-    alert('支付成功！正在为您解锁内容...');
-    // Refetch the fortune
-    onRefetch();
-  };
-
-  return (
-    <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-      <h3 className="mb-2 font-serif text-lg font-bold">解锁完整运势</h3>
-      <p className="mb-4 text-sm text-[#57534e] dark:text-[#a8a29e]">
-        您的每日运势已经生成，需要付费解锁才能查看完整内容。
-      </p>
-      <Button onClick={handlePaySuccess} className="w-full">
-        支付解锁
-      </Button>
-    </div>
-  );
-}
-
 export default function DailyContainer() {
-  const router = useRouter();
   const [selectedZodiac, setSelectedZodiac] = useState<string | null>(null);
   const [fortune, setFortune] = useState<DailyFortune | null>(null);
   const [fortuneId, setFortuneId] = useState<string | null>(null);
+  const [isUnlocked, setIsUnlocked] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const fetchFortune = async (zodiac: string) => {
@@ -102,6 +66,7 @@ export default function DailyContainer() {
       if (data.success) {
         setFortune(data.data.content);
         setFortuneId(data.data.fortuneId);
+        setIsUnlocked(!!data.data.isUnlocked);
       }
     } catch (err) {
       console.error(err);
@@ -110,11 +75,15 @@ export default function DailyContainer() {
     }
   };
 
-  // Function to refetch the current fortune
   const refetchFortune = () => {
     if (selectedZodiac) {
       fetchFortune(selectedZodiac);
     }
+  };
+
+  const handleSelectZodiac = (zodiac: string) => {
+    setSelectedZodiac(zodiac);
+    fetchFortune(zodiac);
   };
 
   if (!selectedZodiac) {
@@ -130,10 +99,7 @@ export default function DailyContainer() {
               {ZODIACS.map((z) => (
                 <button
                   key={z.name}
-                  onClick={() => {
-                    setSelectedZodiac(z.name);
-                    fetchFortune(z.name);
-                  }}
+                  onClick={() => handleSelectZodiac(z.name)}
                   className="group flex flex-col items-center rounded-2xl border border-black/5 bg-white p-5 transition-all hover:border-indigo-300 hover:border-indigo-50/50 hover:shadow-md dark:border-white/5 dark:border-indigo-700"
                 >
                   <span className="mb-2 text-3xl transition-transform group-hover:scale-110">
@@ -202,34 +168,38 @@ export default function DailyContainer() {
               </p>
             </div>
 
-            {/* 运势卡片 */}
+            {/* 运势卡片：未解锁时隐藏详细内容 */}
             <FortuneCard
               icon={<Heart size={18} />}
               title="爱情运势"
               color="pink"
-              content={fortune.love}
-              score={fortune.loveScore}
+              content={isUnlocked ? fortune.love : '解锁后查看今日爱情运势详情'}
+              score={isUnlocked ? fortune.loveScore : 0}
+              locked={!isUnlocked}
             />
             <FortuneCard
               icon={<Briefcase size={18} />}
               title="事业运势"
               color="blue"
-              content={fortune.career}
-              score={fortune.careerScore}
+              content={isUnlocked ? fortune.career : '解锁后查看今日事业运势详情'}
+              score={isUnlocked ? fortune.careerScore : 0}
+              locked={!isUnlocked}
             />
             <FortuneCard
               icon={<Wallet size={18} />}
               title="财富运势"
               color="amber"
-              content={fortune.wealth}
-              score={fortune.wealthScore}
+              content={isUnlocked ? fortune.wealth : '解锁后查看今日财富运势详情'}
+              score={isUnlocked ? fortune.wealthScore : 0}
+              locked={!isUnlocked}
             />
             <FortuneCard
               icon={<Activity size={18} />}
               title="健康提醒"
               color="green"
-              content={fortune.health}
-              score={fortune.healthScore}
+              content={isUnlocked ? fortune.health : '解锁后查看今日健康提醒'}
+              score={isUnlocked ? fortune.healthScore : 0}
+              locked={!isUnlocked}
             />
 
             {/* 幸运指南 */}
@@ -241,29 +211,32 @@ export default function DailyContainer() {
               <div className="grid grid-cols-2 gap-4 text-sm text-[#57534e] dark:text-[#a8a29e]">
                 <div className="flex items-center gap-2">
                   <span className="inline-block h-4 w-4 rounded-full bg-indigo-500" />
-                  <span>幸运色：{fortune.luckyColor}</span>
+                  <span>幸运色：{isUnlocked ? fortune.luckyColor : '🔒'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-indigo-600 dark:bg-indigo-900">
-                    {fortune.luckyNumber}
+                    {isUnlocked ? fortune.luckyNumber : '?'}
                   </span>
-                  <span>幸运数字：{fortune.luckyNumber}</span>
+                  <span>幸运数字：{isUnlocked ? fortune.luckyNumber : '🔒'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin size={14} className="text-indigo-500" />
-                  <span>幸运方位：{fortune.luckyDirection}</span>
+                  <span>幸运方位：{isUnlocked ? fortune.luckyDirection : '🔒'}</span>
                 </div>
               </div>
-
-              {/* 付费解锁提示 */}
-              {!fortune.isUnlocked && fortuneId && (
-                <PayWallClient
-                  fortuneId={fortuneId}
-                  zodiac={selectedZodiac}
-                  onRefetch={refetchFortune}
-                />
-              )}
             </div>
+
+            {/* 付费解锁：走真实支付订单轮询（不再用 alert 假装成功）。
+                isUnlocked 由 API 决定：无库模式 API 直接返回 true */}
+            {!isUnlocked && fortuneId && (
+              <PayWall
+                recordType="daily"
+                recordId={fortuneId}
+                price={6.9}
+                productKey="daily_unlock"
+                onSuccess={refetchFortune}
+              />
+            )}
           </div>
         ) : null}
       </div>
@@ -277,12 +250,14 @@ function FortuneCard({
   color,
   content,
   score,
+  locked,
 }: {
   icon: React.ReactNode;
   title: string;
   color: string;
   content: string;
   score: number;
+  locked?: boolean;
 }) {
   const colorMap: Record<string, string> = {
     pink: 'text-pink-600 dark:text-pink-400',
@@ -299,11 +274,21 @@ function FortuneCard({
           <span className="font-serif font-medium">{title}</span>
         </div>
         <div className="text-sm">
-          {'★'.repeat(score)}
-          {'☆'.repeat(5 - score)}
+          {locked ? (
+            <span className="text-xs text-[#a3a3a3]">🔒 解锁后可见</span>
+          ) : (
+            <>
+              {'★'.repeat(score)}
+              {'☆'.repeat(5 - score)}
+            </>
+          )}
         </div>
       </div>
-      <p className="text-sm leading-relaxed text-[#57534e] dark:text-[#a8a29e]">{content}</p>
+      <p
+        className={`text-sm leading-relaxed text-[#57534e] dark:text-[#a8a29e] ${locked ? 'select-none opacity-50' : ''}`}
+      >
+        {content}
+      </p>
     </div>
   );
 }

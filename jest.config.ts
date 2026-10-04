@@ -6,6 +6,8 @@ const config: Config.InitialOptions = {
   setupFilesAfterEnv: [],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
+    // NodeNext 风格的相对导入带 .js 后缀，ts-jest 下映射回无后缀以解析 .ts 源码
+    '^(\\.{1,2})/(.*)\\.js$': '$1/$2',
   },
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[tj]s?(x)'],
   testPathIgnorePatterns: ['/e2e/', '/node_modules/'],

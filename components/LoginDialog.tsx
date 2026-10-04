@@ -272,6 +272,17 @@ export function LoginDialog({ user, onLogin, onLogout }: LoginDialogProps) {
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : '发送验证码'}
                 </Button>
+                <p className="text-center text-[10px] leading-relaxed text-[#a3a3a3]">
+                  登录即表示同意
+                  <a href="/terms" className="mx-0.5 underline hover:text-[#57534e]">
+                    《用户协议》
+                  </a>
+                  与
+                  <a href="/privacy" className="mx-0.5 underline hover:text-[#57534e]">
+                    《隐私政策》
+                  </a>
+                  。验证码 5 分钟内有效。
+                </p>
               </div>
             ) : (
               <div className="mt-4 space-y-4">

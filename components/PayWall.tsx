@@ -1,71 +1,97 @@
 'use client';
-import { Lock, Loader2, Shield, Star, Users, Clock } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Lock, Loader2, Shield, Clock } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { getDeviceId } from '@/lib/device';
-import { useAuth } from '@/lib/useAuth';
 
 interface PayWallProps {
   recordType: 'bazi' | 'tarot' | 'daily';
   recordId: string;
+  /** 展示用价格，实际扣款金额由服务端产品目录决定 */
   price: number;
+  productKey: string;
   onSuccess: () => void;
 }
 
-export function PayWall({ recordType, recordId, price, onSuccess }: PayWallProps) {
+const POLL_INTERVAL_MS = 3000;
+const POLL_TIMEOUT_MS = 120 * 1000;
+
+export function PayWall({ recordType, recordId, price, productKey, onSuccess }: PayWallProps) {
   const [loading, setLoading] = useState(false);
   const [polling, setPolling] = useState(false);
-  const [countdown, setCountdown] = useState(30);
-  const { user } = useAuth();
+  const [countdown, setCountdown] = useState(POLL_TIMEOUT_MS / 1000);
+  const [error, setError] = useState<string | null>(null);
+  const orderIdRef = useRef<string | null>(null);
 
   const handlePay = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch('/api/payment/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          recordType,
+          // 只传 productKey；金额由服务端决定，不传 amount / userId
+          productKey,
           recordId,
-          amount: price,
-          deviceId: user ? undefined : getDeviceId(),
-          userId: user?.userId,
+          deviceId: getDeviceId(),
         }),
       });
       const data = await res.json();
       if (data.success && data.data.payUrl) {
+        orderIdRef.current = data.data.orderId;
         window.open(data.data.payUrl, '_blank');
-        setPolling(true);
+        if (!data.data.demo) {
+          // 演示模式下没有真实支付可等，不轮询
+          setCountdown(POLL_TIMEOUT_MS / 1000);
+          setPolling(true);
+        } else {
+          setError(data.data.message || '当前为演示模式，无法完成真实支付。');
+        }
+      } else {
+        setError(data.error || '支付发起失败，请稍后再试');
       }
     } catch (err) {
-      console.error(err);
+      console.error('[PayWall] 创建支付失败:', err);
+      setError('网络错误，请稍后再试');
     } finally {
       setLoading(false);
     }
   };
 
-  // Poll payment status
+  // 轮询订单支付状态（不再轮询 VIP 状态——单次解锁与 VIP 无关）
   useEffect(() => {
     if (!polling) return;
     const interval = setInterval(async () => {
+      const orderId = orderIdRef.current;
+      if (!orderId) return;
       try {
-        const param = user?.userId ? `userId=${user.userId}` : `deviceId=${getDeviceId()}`;
-        const res = await fetch(`/api/user/status?${param}`);
+        const param = `orderId=${orderId}&deviceId=${getDeviceId()}`;
+        const res = await fetch(`/api/payment/status?${param}`);
         const data = await res.json();
-        if (data.success) {
+        if (data.success && data.data.status === 'paid') {
           clearInterval(interval);
           setPolling(false);
           onSuccess();
         }
-      } catch {}
-    }, 3000);
+      } catch (err) {
+        console.error('[PayWall] 查询支付状态失败:', err);
+      }
+    }, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [polling, onSuccess, user]);
+  }, [polling, onSuccess]);
 
-  // Countdown timer
+  // 倒计时：到 0 时停止轮询并提示（setState 在 timer 回调里，不在 effect 同步体内）
   useEffect(() => {
-    if (!polling || countdown <= 0) return;
+    if (!polling) return;
+    if (countdown <= 0) {
+      const stop = setTimeout(() => {
+        setPolling(false);
+        setError('等待支付超时。完成付款后刷新页面即可查看内容。');
+      }, 0);
+      return () => clearTimeout(stop);
+    }
     const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(timer);
   }, [polling, countdown]);
@@ -105,7 +131,7 @@ export function PayWall({ recordType, recordId, price, onSuccess }: PayWallProps
 
         <Button
           onClick={handlePay}
-          disabled={loading}
+          disabled={loading || polling}
           className="h-14 w-full rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-base font-semibold text-white shadow-lg transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-xl disabled:opacity-50"
         >
           {loading ? (
@@ -126,26 +152,21 @@ export function PayWall({ recordType, recordId, price, onSuccess }: PayWallProps
           )}
         </Button>
 
-        <div className="mt-6 grid grid-cols-3 gap-4">
+        {error && (
+          <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-[#92400e] dark:bg-amber-950/30 dark:text-[#fbbf24]">
+            {error}
+          </p>
+        )}
+
+        <div className="mt-6 grid grid-cols-2 gap-4">
           <div className="flex flex-col items-center gap-1">
             <Shield size={16} className="text-green-500" />
-            <span className="text-[10px] text-[#a3a3a3]">安全支付</span>
-          </div>
-          <div className="flex flex-col items-center gap-1">
-            <Users size={16} className="text-blue-500" />
-            <span className="text-[10px] text-[#a3a3a3]">已有 2,341 人解锁</span>
+            <span className="text-[10px] text-[#a3a3a3]">第三方安全支付</span>
           </div>
           <div className="flex flex-col items-center gap-1">
             <Clock size={16} className="text-amber-500" />
-            <span className="text-[10px] text-[#a3a3a3]">30秒获得报告</span>
+            <span className="text-[10px] text-[#a3a3a3]">支付后立即解锁</span>
           </div>
-        </div>
-
-        <div className="mt-4 flex items-center justify-center gap-1 text-xs text-[#a3a3a3]">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Star key={i} size={12} className="fill-amber-400 text-amber-400" />
-          ))}
-          <span className="ml-1">4.9/5 用户好评</span>
         </div>
       </div>
     </div>

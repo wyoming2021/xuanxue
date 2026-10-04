@@ -15,6 +15,10 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json({ success: false, error: 'Service unavailable' }, { status: 503 });
+    }
+
     const query = userId
       ? supabaseAdmin.from('users').select('vip_expire_time').eq('id', userId)
       : supabaseAdmin.from('users').select('vip_expire_time').eq('device_id', deviceId);

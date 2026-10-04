@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { activateDevMembership } from '@/lib/dev-user-store';
-
-const isRealSupabase = !process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('placeholder');
+import { isDevToolAllowed } from '@/lib/env';
 
 /**
  * DEV ONLY: Simulate a membership purchase.
- * Activate membership for a user by email.
- * REMOVE OR GUARD IN PRODUCTION.
+ * 生产或已接真库时一律 403（P1-4：不再依赖 Supabase URL 魔法字符串判断）。
  */
 export async function POST(req: NextRequest) {
-  if (isRealSupabase) {
+  if (!isDevToolAllowed()) {
     return NextResponse.json({ error: 'disabled in production' }, { status: 403 });
   }
 

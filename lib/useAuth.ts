@@ -19,11 +19,7 @@ export function useAuth() {
       const res = await fetch('/api/auth/me');
       if (res.ok) {
         const data = await res.json();
-        if (data.success) {
-          setUser(data.data);
-        } else {
-          setUser(null);
-        }
+        setUser(data.success ? data.data : null);
       } else {
         setUser(null);
       }
@@ -34,30 +30,12 @@ export function useAuth() {
     }
   }, []);
 
+  // 初始加载复用 fetchUser（P2-4：删除重复的请求逻辑）。
+  // microtask 延迟确保 setState 不在 effect 同步体内触发（react-hooks/set-state-in-effect）
   useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const res = await fetch('/api/auth/me');
-        if (!cancelled && res.ok) {
-          const data = await res.json();
-          if (!cancelled) {
-            setUser(data.success ? data.data : null);
-          }
-        } else if (!cancelled) {
-          setUser(null);
-        }
-      } catch {
-        if (!cancelled) setUser(null);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    const t = setTimeout(fetchUser, 0);
+    return () => clearTimeout(t);
+  }, [fetchUser]);
 
   const logout = useCallback(async () => {
     await fetch('/api/auth/logout', { method: 'POST' });

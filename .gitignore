@@ -39,3 +39,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# playwright / test artifacts (P3-4)
+/playwright-report
+/test-results
+
+# coverage already ignored above
+
+# xuanyu-core build output (rebuild with: cd packages/xuanyu-core && npm run build)
+/packages/*/dist
+
+# skill local dependencies (users run npm install per SKILL.md)
+skills/**/node_modules
+
+# allow env example for template users
+!.env.example

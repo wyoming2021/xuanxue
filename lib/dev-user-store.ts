@@ -4,6 +4,8 @@
  * In production, always use the real database.
  */
 
+import { hasRealSupabase } from '@/lib/env';
+
 interface DevUser {
   id: string;
   email: string;
@@ -13,7 +15,7 @@ interface DevUser {
 const users = new Map<string, DevUser>();
 
 function isRealDb(): boolean {
-  return !process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('placeholder');
+  return hasRealSupabase();
 }
 
 /** Get or create a dev user by email */

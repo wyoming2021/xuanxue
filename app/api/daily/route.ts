@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { resolveRequestUser } from '@/lib/resolve-user';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 const ZODIAC_LIST = [
@@ -119,15 +120,41 @@ const COMPATIBLE_ZODIACS: Record<string, string[]> = {
   双鱼座: ['巨蟹座', '天蝎座', '摩羯座'],
 };
 
+/**
+ * 生成某星座某天的运势（P2-2 修复）。
+ *
+ * 用 (zodiac, date) 做 FNV-1a 种子 + mulberry32 迭代伪随机：
+ * - 四个维度（爱情/事业/财运/健康）各自取独立随机值，不再共享同一个恒定状态
+ *   （旧实现 rand() 不迭代，四项永远同档）；
+ * - 同一星座同一天结果可复现，不同星座/不同日期结果分散。
+ */
 function generateFortune(zodiac: string, date: string) {
-  const seed = Array.from(date + zodiac).reduce((a, c) => a + c.charCodeAt(0), 0);
-  const rand = (n: number) => (seed * 9301 + 49297) % n;
+  // FNV-1a 哈希种子
+  let seed = 0x811c9dc5;
+  const input = `${date}|${zodiac}`;
+  for (let i = 0; i < input.length; i++) {
+    seed ^= input.charCodeAt(i);
+    seed = Math.imul(seed, 0x01000193) >>> 0;
+  }
 
-  const introIdx = rand(100) % 3;
-  const loveIdx = rand(100) % 5;
-  const careerIdx = rand(100) % 5;
-  const wealthIdx = rand(100) % 5;
-  const healthIdx = rand(100) % 5;
+  // mulberry32：可复现且足够分散的确定性 PRNG
+  const rand = (() => {
+    let state = seed >>> 0;
+    return (n: number) => {
+      state = (state + 0x6d2b79f5) >>> 0;
+      let t = state;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      const x = ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      return Math.floor(x * n);
+    };
+  })();
+
+  const introIdx = rand(3);
+  const loveIdx = rand(5);
+  const careerIdx = rand(5);
+  const wealthIdx = rand(5);
+  const healthIdx = rand(5);
 
   const love = LOVE_FORTUNES[loveIdx];
   const career = CAREER_FORTUNES[careerIdx];
@@ -158,13 +185,15 @@ function generateFortune(zodiac: string, date: string) {
     wealthScore: wealth.score,
     health: health.content,
     healthScore: health.score,
-    luckyColor: LUCKY_ITEMS.colors[rand(100) % 12],
-    luckyNumber: LUCKY_ITEMS.numbers[rand(100) % 16],
-    luckyDirection: LUCKY_ITEMS.directions[rand(100) % 8],
-    compatibleZodiac: COMPATIBLE_ZODIACS[zodiac]?.[rand(100) % 3] || '未知',
+    luckyColor: LUCKY_ITEMS.colors[rand(12)],
+    luckyNumber: LUCKY_ITEMS.numbers[rand(16)],
+    luckyDirection: LUCKY_ITEMS.directions[rand(8)],
+    compatibleZodiac: COMPATIBLE_ZODIACS[zodiac]?.[rand(3)] || '未知',
   };
 }
 
+// 本地缓存上限，防止长驻进程内存无限增长（P3-8 部分缓解；根治靠 DB 唯一索引）
+const MAX_LOCAL_CACHE = 400;
 const localCache = new Map<string, any>();
 
 export async function GET(req: NextRequest) {
@@ -180,47 +209,88 @@ export async function GET(req: NextRequest) {
     const today = new Date().toISOString().split('T')[0];
     const cacheKey = `${zodiac}-${today}`;
 
-    try {
-      if (supabaseAdmin) {
-        let { data: existing } = await supabaseAdmin
+    if (supabaseAdmin) {
+      let existing = null;
+      let dbError: unknown = null;
+
+      try {
+        const { data, error } = await supabaseAdmin
           .from('daily_fortunes')
           .select('*')
           .eq('zodiac', zodiac)
           .eq('fortune_date', today)
-          .single();
+          .maybeSingle();
 
-        if (!existing) {
+        if (error) {
+          dbError = error;
+        } else {
+          existing = data;
+        }
+
+        if (!existing && !dbError) {
           const fortune = generateFortune(zodiac, today);
-          const { data: newFortune } = await supabaseAdmin
+          // (zodiac, fortune_date) 有唯一索引（003 迁移），并发插入冲突时回读
+          const { data: newFortune, error: insertError } = await supabaseAdmin
             .from('daily_fortunes')
             .insert({ zodiac, fortune_date: today, content: fortune })
             .select('*')
             .single();
-          existing = newFortune;
+
+          if (insertError) {
+            console.error('[daily] 写入运势失败:', insertError);
+            const retry = await supabaseAdmin
+              .from('daily_fortunes')
+              .select('*')
+              .eq('zodiac', zodiac)
+              .eq('fortune_date', today)
+              .maybeSingle();
+            existing = retry.data;
+          } else {
+            existing = newFortune;
+          }
+        }
+      } catch (err) {
+        console.error('[daily] 数据库操作异常，降级为本地缓存:', err);
+        dbError = err;
+      }
+
+      if (existing && existing.content) {
+        // daily_fortunes 是 (zodiac, fortune_date) 维度的公共记录，
+        // is_unlocked 字段是全局的，不能作为单人解锁依据（文档 8.4）。
+        // 解锁判定：VIP，或该用户对这条 fortune 有已支付订单。
+        const requestUser = await resolveRequestUser(deviceId);
+        let isUnlocked = false;
+        if (requestUser) {
+          if (requestUser.isVip) {
+            isUnlocked = true;
+          } else {
+            const { data: paidOrder } = await supabaseAdmin
+              .from('orders')
+              .select('id')
+              .eq('user_id', requestUser.userId)
+              .eq('record_type', 'daily')
+              .eq('record_id', existing.id)
+              .eq('status', 'paid')
+              .limit(1)
+              .maybeSingle();
+            if (paidOrder) isUnlocked = true;
+          }
         }
 
-        if (existing && existing.content) {
-          let isUnlocked = existing.is_unlocked || false;
-          if (!isUnlocked && deviceId) {
-            const { data: user } = await supabaseAdmin
-              .from('users')
-              .select('vip_expire_time')
-              .eq('device_id', deviceId)
-              .single();
-            if (user?.vip_expire_time && new Date(user.vip_expire_time) > new Date()) {
-              isUnlocked = true;
-            }
-          }
-          return NextResponse.json({
-            success: true,
-            data: { fortuneId: existing.id, content: existing.content, isUnlocked },
-          });
-        }
+        return NextResponse.json({
+          success: true,
+          data: { fortuneId: existing.id, content: existing.content, isUnlocked },
+        });
       }
-    } catch (dbError) {}
+    }
 
     if (!localCache.has(cacheKey)) {
       localCache.set(cacheKey, generateFortune(zodiac, today));
+      // 简单 LRU：超限删除最早插入的条目
+      if (localCache.size > MAX_LOCAL_CACHE) {
+        const oldest = localCache.keys().next().value;
+        if (oldest !== undefined) localCache.delete(oldest);
+      }
     }
 
     return NextResponse.json({
@@ -228,7 +298,9 @@ export async function GET(req: NextRequest) {
       data: {
         fortuneId: `local-${cacheKey}`,
         content: localCache.get(cacheKey),
-        isUnlocked: false,
+        // 无数据库模式不设付费墙（与 bazi/tarot 本地记录行为一致），
+        // 付费解锁只在有真实库时生效
+        isUnlocked: true,
       },
     });
   } catch (error) {
