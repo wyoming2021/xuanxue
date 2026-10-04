@@ -7,6 +7,8 @@
 interface OtpEntry {
   code: string;
   expiresAt: number;
+  /** 创建时间（毫秒时间戳），用于 60s 重发冷却判断 */
+  createdAt: number;
   used: boolean;
 }
 
@@ -26,7 +28,7 @@ setInterval(
 );
 
 export function saveOtp(email: string, code: string, expiresAt: Date) {
-  store.set(email, { code, expiresAt: expiresAt.getTime(), used: false });
+  store.set(email, { code, expiresAt: expiresAt.getTime(), createdAt: Date.now(), used: false });
 }
 
 export function verifyOtp(email: string, code: string): { valid: boolean; expired: boolean } {
@@ -42,8 +44,9 @@ export function verifyOtp(email: string, code: string): { valid: boolean; expire
 export function isRateLimited(email: string): boolean {
   const entry = store.get(email);
   if (!entry) return false;
-  // Rate limit: if an unused OTP was created less than 60 seconds ago
-  return !entry.used && entry.expiresAt > Date.now() - 60 * 1000;
+  // 重发冷却：未使用的验证码创建于 60 秒内则拦截。
+  // 注意按 createdAt 判断，不要用 expiresAt（那是 5 分钟有效期，会把冷却放大成 6 分钟）
+  return !entry.used && Date.now() - entry.createdAt < 60 * 1000;
 }
 
 /** Get the current OTP code for an email (debug only) */
