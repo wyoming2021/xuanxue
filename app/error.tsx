@@ -1,8 +1,10 @@
 'use client';
+
 import { RefreshCw, Home, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
+import { SUPPORT_EMAIL } from '@/lib/site-config';
 
 export default function Error({
   error,
@@ -50,9 +52,7 @@ export default function Error({
         </div>
       )}
 
-      <p className="mt-6 text-sm text-[#a3a3a3]">
-        如果问题持续出现，请联系我们：support@xuanyu.app
-      </p>
+      <p className="mt-6 text-sm text-[#a3a3a3]">如果问题持续出现，请联系我们：{SUPPORT_EMAIL}</p>
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 
-const SITE_NAME = '玄语';
-const SITE_URL = 'https://xuanyu.app';
+import { SITE_NAME, SITE_URL } from './site-config';
+
+export { SITE_NAME, SITE_URL };
 
 export function createMetadata(page: {
   title: string;

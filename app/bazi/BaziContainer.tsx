@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getDeviceId } from '@/lib/device';
+import { SITE_URL } from '@/lib/site-config';
 
 import { baziRequestSchema, safeValidate } from '../lib/validation';
 
@@ -104,7 +105,7 @@ export default function BaziContainer() {
       <BaziJsonLd
         name={form.name || '用户'}
         description="输入出生日期，自动排出你的八字命盘，分析性格和运势"
-        url="https://xuanyu.app/bazi"
+        url={`${SITE_URL}/bazi`}
       />
 
       <div className="border-b border-black/5 bg-white/50 dark:border-white/5 dark:bg-white/[0.02]">

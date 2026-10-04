@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const BASE_URL = 'https://xuanyu.app';
+import { SITE_URL as BASE_URL } from '@/lib/site-config';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages = [

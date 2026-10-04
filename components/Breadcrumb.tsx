@@ -1,6 +1,9 @@
 'use client';
+
 import { ChevronRight, Home } from 'lucide-react';
 import Link from 'next/link';
+
+import { SITE_URL } from '@/lib/site-config';
 
 import { BreadcrumbJsonLd } from './JsonLd';
 
@@ -19,7 +22,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
 
   const jsonLdItems = allItems.map((item) => ({
     name: item.label,
-    url: item.href ? `https://xuanyu.app${item.href}` : 'https://xuanyu.app',
+    url: item.href ? `${SITE_URL}${item.href}` : SITE_URL,
   }));
 
   return (

@@ -1,5 +1,7 @@
 'use client';
 
+import { SITE_NAME, SITE_URL } from '@/lib/site-config';
+
 interface JsonLdProps {
   data: Record<string, any>;
 }
@@ -15,16 +17,16 @@ export function WebsiteJsonLd() {
   const data = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: '玄语',
+    name: SITE_NAME,
     alternateName: 'XuanYu',
-    url: 'https://xuanyu.app',
+    url: SITE_URL,
     description: '玄语是一个在线玄学工具站，提供八字排盘、紫微斗数、塔罗占卜、每日运势等功能。',
     inLanguage: 'zh-CN',
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: 'https://xuanyu.app/search?q={search_term_string}',
+        urlTemplate: `${SITE_URL}/search?q={search_term_string}`,
       },
       'query-input': 'required name=search_term_string',
     },
@@ -38,9 +40,9 @@ export function OrganizationJsonLd() {
   const data = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: '玄语',
-    url: 'https://xuanyu.app',
-    logo: 'https://xuanyu.app/logo.png',
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: `${SITE_URL}/logo.png`,
     sameAs: [],
     description: '在线玄学工具站，融合传统命理学与现代科技。',
   };
@@ -185,7 +187,7 @@ export function ServiceJsonLd() {
     description: '提供八字排盘、紫微斗数、塔罗占卜、每日运势等在线玄学服务',
     provider: {
       '@type': 'Organization',
-      name: '玄语',
+      name: SITE_NAME,
     },
     areaServed: 'CN',
     serviceType: ['八字排盘', '紫微斗数', '塔罗占卜', '每日运势', '合婚配对'],
