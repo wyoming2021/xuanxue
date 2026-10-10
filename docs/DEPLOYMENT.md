@@ -1,10 +1,29 @@
 # 从零部署一个玄学网站（部署手册）
 
-本仓库是一个完整可部署的玄学工具站模板：八字排盘、紫微斗数、星盘、六爻、梅花易数、合婚、塔罗、每日运势 + 邮箱登录 + 会员/单次付费。按本手册操作，约 30 分钟可得到一个属于你自己的站点。
+本仓库是一个完整可部署的玄学工具站模板：八字排盘、紫微斗数、星盘、六爻、梅花易数、合婚、塔罗、每日运势 + 邮箱登录 + 会员/单次付费。
 
-> 所有命理内容仅供娱乐与文化参考。站点已内置免责声明、隐私政策与用户协议页面，上线前请阅读第 8 节合规提醒。
+> 所有命理内容仅供娱乐与文化参考。站点已内置免责声明、隐私政策与用户协议页面，上线前请阅读第 9 节合规提醒。
 
 ---
+
+## ⚡ 3 分钟快速部署（推荐）
+
+只需要一个 **Supabase 账号**（数据库）和一个 **Vercel 账号**（托管），全程在浏览器操作：
+
+1. **一键部署代码** → 点击仓库 README 顶部的 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fwyoming2021%2Fxuanxue&env=NEXT_PUBLIC_SUPABASE_URL%2CSUPABASE_SERVICE_ROLE_KEY%2CAUTH_SECRET%2CNEXT_PUBLIC_SITE_URL)
+   - 登录 Vercel → 填环境变量：`NEXT_PUBLIC_SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`、`AUTH_SECRET`（点一下生成随机值即可）、`NEXT_PUBLIC_SITE_URL`（你的域名）→ Deploy
+2. **初始化数据库** → 打开 https://supabase.com → 注册/登录 → New project → 进入 **SQL Editor** → 整段粘贴仓库根目录 [`supabase/init.sql`](../supabase/init.sql) 的内容 → **Run**（一次完成建表和行级安全）
+3. **绑定域名** → Vercel → Project → Settings → Domains → 添加你的域名并解析
+
+完成。打开你的域名即可访问。
+
+> 💡 如果还没建 Supabase 项目：先到 Supabase 创建项目，在 **Project Settings → API** 拿到 `Project URL` 和 `service_role` 密钥，再回 Vercel 填。
+
+> 💡 邮箱登录要可用，还需在 Supabase 里执行上面的 SQL 后，配置 `QQ_EMAIL_USER` / `QQ_EMAIL_AUTH_CODE`（见第 5 节）；不配置则站点可浏览，登录/支付不可用。
+
+---
+
+## 详细步骤（备查）
 
 ## 1. 前置条件
 

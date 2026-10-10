@@ -2,7 +2,21 @@
 
 传统文化命理工具站（八字排盘、紫微斗数、塔罗占卜、六爻、梅花易数、每日运势、合婚配对等），基于 Next.js 16 App Router 构建。
 
-**想把这套站部署成你自己的？** 跟着 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) 走，约 30 分钟上线（含数据库、登录、支付配置与品牌替换清单）。只要计算引擎的话直接用 [`packages/xuanyu-core`](packages/xuanyu-core)。
+## 一键部署到你的站点
+
+**点这个按钮**，按提示填 2 个 Supabase 密钥即可完成代码部署（约 3 分钟；数据库初始化见下方"② 初始化数据库"）：
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fwyoming2021%2Fxuanxue&env=NEXT_PUBLIC_SUPABASE_URL%2CSUPABASE_SERVICE_ROLE_KEY%2CAUTH_SECRET%2CNEXT_PUBLIC_SITE_URL)
+
+三步建站：
+
+1. **点上面的按钮** → 登录 Vercel → 填 `NEXT_PUBLIC_SUPABASE_URL` 和 `SUPABASE_SERVICE_ROLE_KEY`，`AUTH_SECRET` 用 Vercel 的 Generate 按钮生成一个（或任意 ≥32 位随机串）→ Deploy
+2. **初始化数据库**：打开 https://supabase.com → SQL Editor → 整段粘贴执行 [`supabase/init.sql`](supabase/init.sql)（已合并，一次完成）
+3. **绑定你自己的域名**：Vercel → Project → Settings → Domains
+
+本地体验：`npm install` → `npm run setup`（交互式生成 `.env.local`）→ `npm run dev`。
+
+只要计算引擎的话直接用 [`packages/xuanyu-core`](packages/xuanyu-core)。详细步骤见 [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)。
 
 ## 功能
 
