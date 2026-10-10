@@ -8,11 +8,13 @@
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fwyoming2021%2Fxuanxue&env=NEXT_PUBLIC_SUPABASE_URL%2CSUPABASE_SERVICE_ROLE_KEY%2CAUTH_SECRET%2CNEXT_PUBLIC_SITE_URL)
 
-三步建站：
+三步建站（Vercel 零配置托管）：
 
 1. **点上面的按钮** → 登录 Vercel → 填 `NEXT_PUBLIC_SUPABASE_URL` 和 `SUPABASE_SERVICE_ROLE_KEY`，`AUTH_SECRET` 用 Vercel 的 Generate 按钮生成一个（或任意 ≥32 位随机串）→ Deploy
 2. **初始化数据库**：打开 https://supabase.com → SQL Editor → 整段粘贴执行 [`supabase/init.sql`](supabase/init.sql)（已合并，一次完成）
 3. **绑定你自己的域名**：Vercel → Project → Settings → Domains
+
+**有自己的 VPS？** 走 Docker 或裸机 Node 部署，见 [`docs/VPS_DEPLOYMENT.md`](docs/VPS_DEPLOYMENT.md)（含 Nginx + HTTPS）。
 
 本地体验：`npm install` → `npm run setup`（交互式生成 `.env.local`）→ `npm run dev`。
 

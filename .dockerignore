@@ -1,0 +1,28 @@
+# 依赖与构建产物
+node_modules
+.next
+out
+build
+
+# 环境与密钥（绝不打进镜像；运行时用 env_file 注入）
+.env
+.env.local
+.env.*.local
+
+# 测试与文档产物
+coverage
+playwright-report
+test-results
+gui-test-screenshots
+
+# 仓库/编辑器
+.git
+.gitignore
+*.md
+.DS_Store
+.vscode
+.idea
+
+# SDK / skill 的构建产物与本地依赖
+packages/*/dist
+skills/**/node_modules

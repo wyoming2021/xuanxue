@@ -1,6 +1,8 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // 输出独立部署产物，便于 Docker / VPS 自托管（对 Vercel 部署无影响）
+  output: 'standalone',
   // Enable React Strict Mode for better error handling
   reactStrictMode: true,
   // Optimize images with next/image

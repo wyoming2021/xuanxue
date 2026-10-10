@@ -1,0 +1,17 @@
+# 玄语站 Docker Compose（VPS 部署）
+# 用法：
+#   1. 在项目根目录：cp .env.example .env.local 并填入你的配置（或运行 npm run setup）
+#   2. docker compose up -d --build
+#   3. 访问 http://<VPS-IP>:3000（生产环境请在前面加 Nginx 反代 + HTTPS）
+services:
+  web:
+    build: .
+    image: xuanyu:latest
+    container_name: xuanyu
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000" # 只绑定本机，由 Nginx 反代对外
+    env_file:
+      - .env.local
+    environment:
+      - NODE_ENV=production
