@@ -1,8 +1,34 @@
 # VPS 自托管部署手册
 
-不想用 Vercel？完全可以用你自己的 VPS。本手册提供 **Docker 方式（推荐）** 和 **裸机 Node 方式** 两种部署路径。
+不想用 Vercel？完全可以用你自己的 VPS。本手册提供 **一条命令自动部署（推荐）**、**Docker 方式** 和 **裸机 Node 方式**。
 
 > 数据库仍然使用 **Supabase 云数据库**（免费档）——VPS 上不需要跑 PostgreSQL，只需运行 Next.js 应用本体。这样安全、省心，也便于将来扩容。
+
+---
+
+## ⚡ 一条命令自动部署（推荐）
+
+在 VPS 上执行（自动完成：装 Docker → 拉代码 → 生成配置 → 构建启动 → Nginx → HTTPS）：
+
+```bash
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/wyoming2021/xuanxue/master/scripts/vps-deploy.sh)"
+```
+
+脚本会交互式询问 Supabase 地址、密钥、域名等信息（可选项目直接回车跳过）；也可以**全自动非交互**——提前把配置放进环境变量：
+
+```bash
+sudo XUANYU_DOMAIN=example.com \
+     XUANYU_SUPABASE_URL=https://xxx.supabase.co \
+     XUANYU_SERVICE_KEY=你的service_role密钥 \
+     XUANYU_SUPPORT_EMAIL=hi@example.com \
+     XUANYU_QQ_EMAIL=myqq@qq.com \
+     XUANYU_QQ_CODE=SMTP授权码 \
+     bash -c "$(curl -fsSL https://raw.githubusercontent.com/wyoming2021/xuanxue/master/scripts/vps-deploy.sh)"
+```
+
+域名已解析到本机时，脚本会自动配置 Nginx 并签发 HTTPS 证书（Let's Encrypt），完成后直接访问 `https://你的域名` 即可。
+
+> 想跳过 HTTPS 只先起服务：加 `XUANYU_SKIP_HTTPS=1`。
 
 ---
 

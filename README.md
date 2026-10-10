@@ -14,7 +14,13 @@
 2. **初始化数据库**：打开 https://supabase.com → SQL Editor → 整段粘贴执行 [`supabase/init.sql`](supabase/init.sql)（已合并，一次完成）
 3. **绑定你自己的域名**：Vercel → Project → Settings → Domains
 
-**有自己的 VPS？** 走 Docker 或裸机 Node 部署，见 [`docs/VPS_DEPLOYMENT.md`](docs/VPS_DEPLOYMENT.md)（含 Nginx + HTTPS）。
+**有自己的 VPS？** 一条命令自动部署（装 Docker → 拉代码 → 构建 → Nginx → HTTPS）：
+
+```bash
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/wyoming2021/xuanxue/master/scripts/vps-deploy.sh)"
+```
+
+详见 [`docs/VPS_DEPLOYMENT.md`](docs/VPS_DEPLOYMENT.md)。
 
 本地体验：`npm install` → `npm run setup`（交互式生成 `.env.local`）→ `npm run dev`。
 
