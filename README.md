@@ -34,6 +34,7 @@ sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/wyoming2021/xuanxue
 - **每日运势**：12 星座每日四维运势
 - **会员体系**：邮箱验证码登录，日 / 月 / 年卡会员，跨设备同步
 - **支付**：虎皮椒（xunhupay）网关，服务端产品目录定价
+- **文章发布**：站长后台写文章（`/admin/articles`），前台列表/详情展示（`/articles`），配置 `ADMIN_EMAIL` 启用
 
 ## 技术栈
 

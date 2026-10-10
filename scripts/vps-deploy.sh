@@ -136,6 +136,7 @@ ask "⑥ QQ 邮箱（登录验证码）"         XUANYU_QQ_EMAIL     0
 ask "⑦ QQ 邮箱 SMTP 授权码"          XUANYU_QQ_CODE      0
 ask "⑧ 虎皮椒 APP_ID（支付可选）"     XUANYU_HUPIJAO_APPID 0
 ask "⑨ 虎皮椒 APP_SECRET"            XUANYU_HUPIJAO_SECRET 0
+ask "⑩ 文章管理员邮箱（ADMIN_EMAIL）"  XUANYU_ADMIN_EMAIL   0
 
 # 派生项
 DOMAIN="${XUANYU_DOMAIN:-}"
@@ -149,6 +150,7 @@ fi
 [[ -n "${XUANYU_QQ_CODE:-}" ]] && echo "QQ_EMAIL_AUTH_CODE=$XUANYU_QQ_CODE" >> "$ENV_FILE"
 [[ -n "${XUANYU_HUPIJAO_APPID:-}" ]] && echo "HUPIJAO_APP_ID=$XUANYU_HUPIJAO_APPID" >> "$ENV_FILE"
 [[ -n "${XUANYU_HUPIJAO_SECRET:-}" ]] && echo "HUPIJAO_APP_SECRET=$XUANYU_HUPIJAO_SECRET" >> "$ENV_FILE"
+[[ -n "${XUANYU_ADMIN_EMAIL:-}" ]] && echo "ADMIN_EMAIL=$XUANYU_ADMIN_EMAIL" >> "$ENV_FILE"
 
 # 校验必填
 if ! grep -q '^NEXT_PUBLIC_SUPABASE_URL=.\+' "$ENV_FILE" || ! grep -q '^SUPABASE_SERVICE_ROLE_KEY=.\+' "$ENV_FILE"; then

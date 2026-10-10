@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export function Footer() {
   return (
     <footer className="border-t border-black/5 bg-white/50 py-10 dark:border-white/5 dark:bg-white/[0.02]">
@@ -78,6 +80,12 @@ export function Footer() {
           </div>
 
           <div className="flex flex-wrap justify-center gap-6 text-sm text-[#737373] dark:text-[#78716c]">
+            <Link
+              href="/articles"
+              className="transition-colors hover:text-[#1c1917] dark:hover:text-[#e7e5e4]"
+            >
+              文章
+            </Link>
             <a
               href="/privacy"
               className="transition-colors hover:text-[#1c1917] dark:hover:text-[#e7e5e4]"

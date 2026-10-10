@@ -84,6 +84,7 @@ npm run dev
 | `HUPIJAO_NOTIFY_URL` | 可选 | 支付回调地址，默认 `{SITE_URL}/api/payment/callback` |
 | `NEXT_PUBLIC_SITE_NAME` | 可选 | 站点名（默认"玄语"，见第 7 节品牌替换） |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | 可选 | 错误页联系邮箱 |
+| `ADMIN_EMAIL` | 文章功能必填 | 站长邮箱，登录该邮箱的用户可进入 `/admin/articles` 发布文章 |
 
 ## 6. 部署上线（Vercel 为例）
 

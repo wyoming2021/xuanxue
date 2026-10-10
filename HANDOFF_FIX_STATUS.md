@@ -313,6 +313,7 @@ send-otp 2 秒后重发 → 429（60s 冷却按创建时间，行为正确）
 - 已验证：包构建通过、21 项单测通过（含包自身 12 项）、8 个 CLI 命令在**完全脱离项目的隔离目录**中全部运行成功。
 - 已知环境限制：本机 npm 镜像（npmmirror）存在 TLS 证书拦截，全新 `npm install` 在本机报 UNABLE_TO_VERIFY_LEAF_SIGNATURE——这是机器环境问题；正常网络环境下按 SKILL.md 安装即可。
 - 注意：包引擎是站点 `lib/` 引擎的**副本**（已解耦 @/types、剔除价格）。后续若站点引擎改动，需同步到包再构建；长期可把站点改为 workspace 消费该包以消除双份维护。
+- 2026-10-04 新增**文章发布功能**（站长发文章）：迁移 `004_add_articles.sql`（已并入 `init.sql`）；前台 `/articles` 列表 + `/articles/[slug]` 详情；管理后台 `/admin/articles`（新建/编辑/删除/草稿/发布）；`lib/admin.ts` 用 `ADMIN_EMAIL` 环境变量做管理员校验；写接口 `POST/DELETE /api/admin/articles`。验证：lint/tsc/jest/build 全过，无库模式下页面降级提示、未登录写接口 403、不存在文章 404。注意 `ADMIN_EMAIL` 未配置时管理后台完全不可用（403）。
 
 ---
 
