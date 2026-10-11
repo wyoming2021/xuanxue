@@ -86,6 +86,12 @@ export function Footer() {
             >
               文章
             </Link>
+            <Link
+              href="/account"
+              className="transition-colors hover:text-[#1c1917] dark:hover:text-[#e7e5e4]"
+            >
+              我的账户
+            </Link>
             <a
               href="/privacy"
               className="transition-colors hover:text-[#1c1917] dark:hover:text-[#e7e5e4]"

@@ -85,9 +85,9 @@ npm run dev
 | `NEXT_PUBLIC_SITE_NAME` | 可选 | 站点名（默认"玄语"，见第 7 节品牌替换） |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | 可选 | 错误页联系邮箱 |
 | `ADMIN_EMAIL` | 文章功能必填 | 站长邮箱，登录该邮箱的用户可进入 `/admin/articles` 发布文章 |
-| `AI_API_KEY` | AI 写文章必填 | DeepSeek 等 OpenAI 兼容接口的 API Key，启用「AI 自动写文章」与「每日自动更新」 |
-| `AI_BASE_URL` | 可选 | AI 接口地址，默认 `https://api.deepseek.com/v1` |
-| `AI_MODEL` | 可选 | 模型名，默认 `deepseek-chat` |
+| `AI_API_KEY` | AI 写文章必填 | OpenAI 兼容接口的 API Key，启用「AI 自动写文章」与「每日自动更新」。推荐硅基流动免费模型（注册 https://siliconflow.cn 实名送额度，选标注 FREE 的模型），详见 `docs/VPS_DEPLOYMENT.md` 第 5 节 |
+| `AI_BASE_URL` | 可选 | AI 接口地址，默认 `https://api.siliconflow.cn/v1` |
+| `AI_MODEL` | 可选 | 模型名，默认 `Qwen/Qwen2.5-7B-Instruct` |
 | `CRON_SECRET` | 每日更新必填 | 定时任务鉴权密钥，VPS 部署脚本自动生成并配置 crontab |
 
 ## 6. 部署上线（Vercel 为例）
@@ -102,6 +102,16 @@ npm run dev
    - [ ] 排盘记录刷新后仍在（说明数据库写入成功）
    - [ ] `https://你的域名/sitemap.xml` 内容是你的域名
    - [ ] 若配了支付：用最低价商品真实支付一单，确认回调后内容解锁（见 `HANDOFF_FIX_STATUS.md` 第 10 节验收标准）
+
+## 6.1 提交 Google Search Console（免费，加速谷歌收录）
+
+站点已内置**动态 sitemap**（包含全部工具页 + 已发布文章，每日新文章会自动出现），提交一次即可：
+
+1. 打开 `https://search.google.com/search-console`，用 Google 账号登录；
+2. **添加资源** → 输入你的域名（选「网域」更省事），按提示验证所有权（DNS 记录或 HTML 标签）；
+3. 左侧 **Sitemap** → 提交 `https://你的域名/sitemap.xml`；
+4. 之后在「效果」页面可查看文章/页面的收录与点击情况；
+5. 站点已内置 Article 结构化数据（JSON-LD），Google 会识别文章富媒体结果，有利于展示。
 
 ## 7. 品牌替换清单
 
