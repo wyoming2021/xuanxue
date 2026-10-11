@@ -14,11 +14,11 @@
  *  - 已存在的 .env.local 不会被覆盖：缺失项补充，已有值保留
  *  - 必填项（Supabase URL / service key）非空校验，最多重试 3 次
  */
+import { randomBytes } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { randomBytes } from 'node:crypto';
-import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
+import { createInterface } from 'node:readline/promises';
 
 const ENV_PATH = resolve(process.cwd(), '.env.local');
 const EXAMPLE_PATH = resolve(process.cwd(), '.env.example');

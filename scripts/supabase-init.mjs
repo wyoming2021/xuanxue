@@ -26,11 +26,11 @@
  *   --sql <路径>           SQL 文件路径，默认 ./supabase/init.sql
  *   --quiet               只输出关键信息
  */
+import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { randomBytes } from 'node:crypto';
-import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
+import { createInterface } from 'node:readline/promises';
 
 const API = 'https://api.supabase.com/v1';
 

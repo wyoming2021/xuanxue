@@ -234,12 +234,15 @@ https://pay.xunhupay.com/api/v2/pay/creat
 
 ## 9. 推荐的剩余工作
 
-1. **（上线阻塞项）** 在生产 Supabase 执行 `supabase/migrations/003_rls_and_orders_product.sql`，确认 RLS 生效（用 anon key 试查应被拒绝）。
-2. **（上线阻塞项）** 配置真实虎皮椒凭证后，用最小金额商品（1.99 日卡）走一次真实支付，验证：支付页可打开 → 回调写库 → 订单变 paid → 前端轮询显示解锁。
-3. 确认 daily_unlock 定价。
-4. 补 bazi/liuyao/meihua 引擎单测（P3-5 剩余）。
-5. 经用户确认后 `git rm --cached -r playwright-report test-results`（P3-4 剩余）。
-6. e2e 与 CI 本次未运行（遵守交接纪律），合入后建议跑一次 `npm run e2e` 观察旧用例是否需要随契约更新。
+1. ✅ **003 迁移/RLS**：已在线上 Supabase 执行 init.sql（含 003：orders.product_key 列、索引、RLS DENY ALL）。复核注意：`.env.local` 的 `NEXT_PUBLIC_SUPABASE_ANON_KEY` 目前是**占位符**，无法用 anon key 做行为验证；部署时替换为真实 anon key 后，按第 1 节纪律用 anon key 试查业务表（应 401 / 200 空数组）复核 RLS。
+2. ⬜ **（上线阻塞项）真实虎皮椒支付测试**（需要真实 HUPIJAO_APP_ID / HUPIJAO_APP_SECRET）：
+   - 在虎皮椒商户后台获取真实凭证，填入 `.env.local`（`HUPIJAO_APP_ID` / `HUPIJAO_APP_SECRET` / `HUPIJAO_NOTIFY_URL`）；
+   - 用 1.99 元日卡走一次真实支付，验证：支付页可打开 → 用户扫码付款 → 虎皮椒回调 `POST /api/payment/callback` → 订单 status 变 `paid` → 前端 PayWall 轮询显示解锁 → `/account` 订单历史出现该订单。
+3. ⬜ 确认 daily_unlock 定价（当前 6.9，见 `lib/payment-products.ts`）。
+4. ✅ 补 bazi/liuyao/meihua 引擎单测（P3-5 完成，2026-10-11，新增 12 断言，全仓 33 测试通过）。
+5. ✅ `git rm --cached` 测试产物：已确认 playwright-report/test-results 不在 git 追踪中（`.gitignore` 已生效），无需操作。
+6. ✅ lint 环境修复（2026-10-11）：`eslint.config.mjs` 把自定义规则注入 eslint-config-next 的 next 配置（该配置已注册全部插件），修复 "could not find plugin react-hooks/import" 报错；**无需降级插件**（eslint 9 需 react-hooks v5，v4 与其 peer 冲突）。
+7. e2e 与 CI 本次未运行（遵守交接纪律），合入后建议跑一次 `npm run e2e` 观察旧用例是否需要随契约更新。
 
 ---
 

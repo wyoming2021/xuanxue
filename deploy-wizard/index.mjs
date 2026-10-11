@@ -14,8 +14,9 @@
  *   WIZ_SUPABASE_TOKEN=sbp_xxx node index.mjs
  */
 import { readFileSync } from 'node:fs';
-import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
+import { createInterface } from 'node:readline/promises';
+
 import { Client } from 'ssh2';
 
 const rl = createInterface({ input: stdin, output: stdout });
