@@ -11,13 +11,15 @@ if [[ ! -f "$ENV_FILE" ]]; then
   exit 0
 fi
 
-# 读取配置（不输出到日志）
-set -a
-# shellcheck disable=SC1090
-source "$ENV_FILE"
-set +a
+# 从 .env.local 读取变量（兼容 KEY=value 和 KEY="value 带空格" 两种格式，
+# 避免 bash source 遇到带尖括号/空格的发件人地址时报语法错误）。
+get_env() {
+  local key="$1"
+  grep -E "^${key}=" "$ENV_FILE" | tail -1 | cut -d= -f2- | tr -d '"' | tr -d "'"
+}
 
-SITE_URL="${NEXT_PUBLIC_SITE_URL:-}"
+SITE_URL="$(get_env NEXT_PUBLIC_SITE_URL)"
+CRON_SECRET="$(get_env CRON_SECRET)"
 CRON_URL="${SITE_URL}/api/cron/generate-article"
 
 if [[ -z "$SITE_URL" || -z "${CRON_SECRET:-}" ]]; then
@@ -26,6 +28,6 @@ if [[ -z "$SITE_URL" || -z "${CRON_SECRET:-}" ]]; then
 fi
 
 echo "[cron-daily] 开始生成今日玄学文章..."
-curl -fsS -m 120 \
+curl -fsS -m 600 \
   -H "Authorization: Bearer ${CRON_SECRET}" \
   "$CRON_URL" || echo "[cron-daily] 生成请求失败（可能未配置 AI_API_KEY）。"

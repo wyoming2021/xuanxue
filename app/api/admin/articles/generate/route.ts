@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { isAdmin } from '@/lib/admin';
-import { generateArticle, isAiConfigured, randomTopic } from '@/lib/ai-generate';
+import { isAiConfigured } from '@/lib/ai-generate';
+import { generateAndPublishArticle } from '@/lib/article-generator';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 /**
  * 后台 AI 生成文章接口（站长专用）。
  * POST body: { topic?, count?, status? }
  *  count: 1-5，默认 1；status: draft | published，默认 draft
- * 逐个调用 AI 生成并写入 articles 表，返回每篇的结果（成功或失败）。
+ *
+ * 第三方推理模型生成可能耗时 1-10 分钟，接口会立即返回 202（任务已开始），
+ * 文章在后台逐个生成并写入 articles 表，稍后刷新文章列表即可看到。
  */
 export async function POST(req: NextRequest) {
   if (!(await isAdmin())) {
@@ -31,39 +34,36 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const rawCount = parseInt(body?.count, 10);
     const count = Math.min(Math.max(Number.isNaN(rawCount) ? 1 : rawCount, 1), 5);
-    const status = body?.status === 'published' ? 'published' : 'draft';
+    const status: 'draft' | 'published' = body?.status === 'published' ? 'published' : 'draft';
     const topic =
       typeof body?.topic === 'string' && body.topic.trim() ? body.topic.trim() : undefined;
 
-    const results: Array<Record<string, unknown>> = [];
-    for (let i = 0; i < count; i++) {
-      try {
-        const article = await generateArticle(topic);
-        // 唯一 slug：ai-<时间戳>-<序号>-<随机>
-        const slug = `ai-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 8)}`;
-        const { data: inserted, error } = await supabaseAdmin
-          .from('articles')
-          .insert({
-            title: article.title,
-            slug,
-            summary: article.summary || null,
-            content: article.content,
+    // 后台逐个生成（不阻塞响应；Next standalone 常驻进程会继续执行）。
+    (async () => {
+      for (let i = 0; i < count; i++) {
+        try {
+          const record = await generateAndPublishArticle({
+            topic,
             status,
-            published_at: status === 'published' ? new Date().toISOString() : null,
-          })
-          .select('id')
-          .single();
-
-        if (error) throw error;
-        results.push({ ok: true, id: inserted.id, title: article.title, status });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error('[admin/articles/generate] 生成失败:', message);
-        results.push({ ok: false, error: message, topic: topic || randomTopic() });
+            slugPrefix: 'ai',
+          });
+          console.log(`[admin/articles/generate] 生成成功 ${i + 1}/${count}:`, record.title);
+        } catch (err) {
+          console.error(
+            `[admin/articles/generate] 生成失败 ${i + 1}/${count}:`,
+            err instanceof Error ? err.message : err,
+          );
+        }
       }
-    }
+    })();
 
-    return NextResponse.json({ success: true, data: results });
+    return NextResponse.json(
+      {
+        success: true,
+        message: `已开始后台生成 ${count} 篇文章，请稍后刷新文章列表查看。`,
+      },
+      { status: 202 },
+    );
   } catch (error) {
     console.error('[admin/articles/generate] 未捕获错误:', error);
     return NextResponse.json({ success: false, error: '服务器错误' }, { status: 500 });

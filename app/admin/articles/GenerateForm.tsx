@@ -1,33 +1,23 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-interface GenerateResult {
-  ok: boolean;
-  id?: string;
-  title?: string;
-  status?: string;
-  error?: string;
-  topic?: string;
-}
-
 export function GenerateForm() {
   const [topic, setTopic] = useState('');
   const [count, setCount] = useState(1);
   const [status, setStatus] = useState<'draft' | 'published'>('draft');
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<GenerateResult[] | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     setLoading(true);
     setError(null);
-    setResults(null);
+    setMessage(null);
     try {
       const res = await fetch('/api/admin/articles/generate', {
         method: 'POST',
@@ -36,7 +26,8 @@ export function GenerateForm() {
       });
       const data = await res.json();
       if (data.success) {
-        setResults(data.data || []);
+        // 接口返回 202：任务已提交，文章在后台生成，稍后刷新列表即可看到。
+        setMessage(data.message || '已开始后台生成，请稍后刷新文章列表查看。');
       } else {
         setError(data.error || '生成失败');
       }
@@ -107,12 +98,12 @@ export function GenerateForm() {
               disabled={loading}
               className="h-11 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 font-semibold text-white disabled:opacity-50"
             >
-              {loading ? '生成中...（每篇约需几秒到几十秒）' : '开始生成'}
+              {loading ? '提交中...' : '开始生成'}
             </Button>
           </div>
           <p className="text-xs text-[#a3a3a3]">
-            需要先在 .env.local 配置 AI_API_KEY（支持 DeepSeek 等 OpenAI
-            兼容接口），否则会提示未配置。
+            需要先在 .env.local 配置 AI_API_KEY（支持 DeepSeek 等 OpenAI 兼容接口）。AI 生成约需
+            1-10 分钟，提交后请稍等再刷新列表。
           </p>
         </div>
       </div>
@@ -123,43 +114,10 @@ export function GenerateForm() {
         </p>
       )}
 
-      {results && (
-        <div className="space-y-3">
-          <h2 className="font-serif font-bold">生成结果（{results.length} 篇）</h2>
-          {results.map((r, i) => (
-            <div
-              key={i}
-              className="rounded-xl border border-black/5 bg-white p-4 dark:border-white/5 dark:bg-white/[0.03]"
-            >
-              {r.ok ? (
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <div className="font-medium text-[#1c1917] dark:text-[#e7e5e4]">
-                      ✅ {r.title}
-                    </div>
-                    <div className="text-xs text-[#a3a3a3]">
-                      已保存为{r.status === 'published' ? '已发布' : '草稿'}
-                      {r.id ? ` · /admin/articles/${r.id}/edit 可编辑` : ''}
-                    </div>
-                  </div>
-                  <Link
-                    href="/admin/articles"
-                    className="text-xs text-indigo-600 hover:underline dark:text-indigo-400"
-                  >
-                    去文章列表查看
-                  </Link>
-                </div>
-              ) : (
-                <div>
-                  <div className="font-medium text-red-600 dark:text-red-400">❌ 生成失败</div>
-                  <div className="text-xs text-[#a3a3a3]">
-                    主题：{r.topic || '随机'} · {r.error}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+      {message && (
+        <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
+          {message}
+        </p>
       )}
     </div>
   );

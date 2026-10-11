@@ -67,11 +67,18 @@ export default async function AdminArticlesPage() {
           <h1 className="font-serif text-2xl font-bold">📝 文章管理</h1>
           <p className="mt-1 text-sm text-[#a3a3a3]">管理员：{adminEmail}</p>
         </div>
-        <Link href="/admin/articles/new">
-          <Button className="h-10 rounded-xl bg-[#1c1917] px-5 font-semibold text-white hover:bg-[#292524] dark:bg-[#e7e5e4] dark:text-[#1c1917]">
-            ＋ 写新文章
-          </Button>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/admin/articles/generate">
+            <Button className="h-10 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-5 font-semibold text-white hover:from-indigo-700 hover:to-purple-700">
+              ✨ AI 写文章
+            </Button>
+          </Link>
+          <Link href="/admin/articles/new">
+            <Button className="h-10 rounded-xl bg-[#1c1917] px-5 font-semibold text-white hover:bg-[#292524] dark:bg-[#e7e5e4] dark:text-[#1c1917]">
+              ＋ 写新文章
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {list.length === 0 ? (

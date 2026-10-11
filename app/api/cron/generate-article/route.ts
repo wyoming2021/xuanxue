@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { generateArticle, isAiConfigured } from '@/lib/ai-generate';
+import { isAiConfigured } from '@/lib/ai-generate';
+import { generateAndPublishArticle } from '@/lib/article-generator';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 /**
@@ -10,8 +11,34 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
  *   curl -fsS -H "Authorization: Bearer <CRON_SECRET>" \
  *     https://你的域名/api/cron/generate-article
  *
+ * 注意：第三方推理模型生成文章可能耗时 1-10 分钟，本接口会立即返回
+ * 202（任务已开始），文章在后台生成完毕后自动出现在前台文章列表；
+ * 生成失败会自动重试（最多 3 次，间隔 30 秒）。
  * 未配置 CRON_SECRET 或请求头不匹配时返回 401；未配置 AI_API_KEY 时返回 503。
  */
+
+const MAX_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 30_000;
+
+async function generateDailyWithRetry(topic: string, attempt: number): Promise<void> {
+  try {
+    const record = await generateAndPublishArticle({
+      topic,
+      status: 'published',
+      slugPrefix: 'daily',
+    });
+    console.log('[cron/generate-article] 异步生成成功:', record);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[cron/generate-article] 异步生成失败（第 ${attempt} 次）: ${message}`);
+    if (attempt < MAX_ATTEMPTS) {
+      setTimeout(() => void generateDailyWithRetry(topic, attempt + 1), RETRY_DELAY_MS);
+    } else {
+      console.error('[cron/generate-article] 多次重试仍失败，请检查 AI_API_KEY 或稍后手动生成。');
+    }
+  }
+}
+
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
   const auth = req.headers.get('authorization');
@@ -29,39 +56,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: false, error: '数据库未配置' }, { status: 503 });
   }
 
-  try {
-    const today = new Date().toLocaleDateString('zh-CN');
-    const article = await generateArticle(`今日运势与命理指南 ${today}`);
-    const slug = `daily-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const today = new Date().toLocaleDateString('zh-CN');
 
-    const { data: inserted, error } = await supabaseAdmin
-      .from('articles')
-      .insert({
-        title: article.title,
-        slug,
-        summary: article.summary || null,
-        content: article.content,
-        status: 'published',
-        published_at: new Date().toISOString(),
-      })
-      .select('id')
-      .single();
+  // 立即返回，后台生成（Next standalone 服务器为常驻进程，响应返回后后台任务会继续执行）。
+  void generateDailyWithRetry(`今日运势与命理指南 ${today}`, 1);
 
-    if (error) {
-      console.error('[cron/generate-article] 写入文章失败:', error);
-      return NextResponse.json({ success: false, error: '写入失败' }, { status: 500 });
-    }
-
-    return NextResponse.json({
+  return NextResponse.json(
+    {
       success: true,
-      articleId: inserted.id,
-      title: article.title,
-    });
-  } catch (err) {
-    console.error('[cron/generate-article] 生成失败:', err);
-    return NextResponse.json(
-      { success: false, error: err instanceof Error ? err.message : '生成失败' },
-      { status: 500 },
-    );
-  }
+      message: '已开始生成今日文章，请稍后刷新前台文章列表查看。',
+    },
+    { status: 202 },
+  );
 }

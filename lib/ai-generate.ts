@@ -1,3 +1,5 @@
+import https from 'node:https';
+
 /**
  * AI 自动生成玄学文章（OpenAI 兼容接口）。
  *
@@ -39,6 +41,54 @@ export function isAiConfigured(): boolean {
   return Boolean(process.env.AI_API_KEY);
 }
 
+/**
+ * 使用 Node https 发送 JSON POST 请求。
+ *
+ * 为什么不用 fetch：Node 内置 fetch（undici）默认约 300 秒的 headersTimeout，
+ * 而第三方推理模型生成 800-1200 字文章可能超过 5 分钟，导致 UND_ERR_HEADERS_TIMEOUT。
+ * 这里改用 https 模块，可自定义超时时间。
+ */
+function postJson(
+  url: string,
+  headers: Record<string, string>,
+  body: unknown,
+  timeoutMs = 600000,
+): Promise<{ status: number; data: string }> {
+  return new Promise((resolve, reject) => {
+    const u = new URL(url);
+    const payload = JSON.stringify(body);
+    const req = https.request(
+      {
+        hostname: u.hostname,
+        port: u.port || 443,
+        path: `${u.pathname}${u.search}`,
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Content-Length': Buffer.byteLength(payload),
+        },
+        timeout: timeoutMs,
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (chunk) => chunks.push(chunk));
+        res.on('end', () => {
+          resolve({
+            status: res.statusCode || 0,
+            data: Buffer.concat(chunks).toString('utf8'),
+          });
+        });
+      },
+    );
+    req.on('timeout', () => {
+      req.destroy(new Error(`AI 接口响应超时（超过 ${timeoutMs / 60000} 分钟）`));
+    });
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  });
+}
+
 export function randomTopic(): string {
   return DEFAULT_TOPICS[Math.floor(Math.random() * DEFAULT_TOPICS.length)];
 }
@@ -74,6 +124,49 @@ function extractJson(text: string): GeneratedArticle | null {
   return null;
 }
 
+interface ChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+/**
+ * 调用 OpenAI 兼容 chat/completions 接口。
+ * 推理类模型（如 Atria-Dawn-Preview）会先输出大量 reasoning_content，
+ * 这里显式请求低推理强度（reasoning_effort: "low"）并控制 max_tokens，
+ * 让文章在 1-3 分钟内返回；若服务商不支持该参数（400），自动降级重试。
+ */
+async function callChatCompletion(
+  baseUrl: string,
+  apiKey: string,
+  model: string,
+  messages: ChatMessage[],
+): Promise<{ status: number; data: string }> {
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${apiKey}`,
+  };
+  const commonBody = {
+    model,
+    messages,
+    temperature: 0.8,
+    // 推理链可能很长（Atria-Dawn-Preview 等推理模型），max_tokens 给足，
+    // 避免 token 全被 reasoning_content 消耗导致 content 为空。
+    max_tokens: 6000,
+  };
+  const first = await postJson(`${baseUrl}/chat/completions`, headers, {
+    ...commonBody,
+    reasoning_effort: 'low',
+  });
+  if (
+    first.status === 400 &&
+    /reasoning_effort|unknown parameter|invalid parameter|not support|unsupported/i.test(first.data)
+  ) {
+    // 服务商不支持 reasoning_effort 参数，去掉后重试一次
+    return postJson(`${baseUrl}/chat/completions`, headers, commonBody);
+  }
+  return first;
+}
+
 /**
  * 调用 AI 生成一篇玄学文章。
  * @param topic 主题（可选，留空随机主题池）
@@ -85,41 +178,41 @@ export async function generateArticle(topic?: string): Promise<GeneratedArticle>
   }
 
   const finalTopic = topic?.trim() || randomTopic();
-  const today = new Date().toLocaleDateString('zh-CN');
 
   const prompt = `你是资深玄学内容编辑。请写一篇中文玄学文章。
 主题：${finalTopic}
 要求：
-- 标题：10-30 字，吸引人
-- 摘要：一句话，50 字以内
-- 正文：800-1200 字，分 6-10 个自然段，段落之间用空行分隔
+- 标题：10-20 字，吸引人
+- 摘要：一句话，40 字以内
+- 正文：400-600 字，分 4-6 个自然段，段落之间用空行分隔
 - 内容涉及八字、塔罗、星座、五行、紫微等传统文化知识，语气温和理性，给出具体可读的解读
 - 结尾加一段：以上内容基于传统命理与占卜文化，仅供娱乐参考。
 - 只返回 JSON，不要 markdown 代码块：
 {"title":"文章标题","summary":"一句话摘要","content":"段落1\\n\\n段落2\\n\\n..."}`;
 
-  const res = await fetch(`${baseUrl}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.8,
-    }),
-  });
+  const { status, data } = await callChatCompletion(baseUrl, apiKey, model, [
+    { role: 'user', content: prompt },
+  ]);
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`AI 接口返回 ${res.status}: ${text.slice(0, 200)}`);
+  if (status < 200 || status >= 300) {
+    throw new Error(`AI 接口返回 ${status}: ${data.slice(0, 200)}`);
   }
 
-  const data = await res.json();
-  const content = data?.choices?.[0]?.message?.content;
+  let payload: any;
+  try {
+    payload = JSON.parse(data);
+  } catch {
+    throw new Error('AI 接口返回了无法解析的内容');
+  }
+
+  const content = payload?.choices?.[0]?.message?.content;
   if (typeof content !== 'string' || !content) {
-    throw new Error('AI 接口返回内容为空');
+    const reason = payload?.choices?.[0]?.finish_reason ?? '未知';
+    const reasoningLen = (payload?.choices?.[0]?.message?.reasoning_content ?? '').length;
+    const usage = JSON.stringify(payload?.usage ?? {});
+    throw new Error(
+      `AI 接口返回内容为空（finish_reason=${reason}, reasoning_content长度=${reasoningLen}, usage=${usage}）`,
+    );
   }
 
   const article = extractJson(content);

@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   description: '八字、塔罗、命理、每日运势相关文章与知识分享。',
 };
 
+// 文章列表必须每次请求实时读取数据库（AI 每日新增文章），不能构建时静态化。
+export const dynamic = 'force-dynamic';
+
 interface Article {
   id: string;
   title: string;
