@@ -180,3 +180,60 @@ pm2 restart xuanyu   # 重启
 - [ ] 邮箱登录可用（若配置了 QQ SMTP）
 - [ ] `https://你的域名/sitemap.xml` 指向你的域名
 - [ ] 支付回调地址 `https://你的域名/api/payment/callback` 可访问（返回 fail 属正常，无真实回调请求时）
+
+---
+
+## 5. AI 每日文章：低配 VPS 方案（模型跑本地）
+
+如果你的 VPS 内存较小（1-2G）跑不动本地大模型，但你的**本地电脑**有模型（例如 qoder / Ollama 等 OpenAI 兼容服务，如 `http://127.0.0.1:18082/v1`），可以让**本地电脑生成文章，定时推送到网站发布**——VPS 完全不需要 AI 配置，只负责接收文章写入数据库。
+
+### 5.1 原理
+
+```text
+本地电脑                          VPS 网站
+qwen 模型生成文章  ──HTTP POST──►  /api/articles/publish  ──► Supabase 发布
+（定时任务触发）    Bearer CRON_SECRET
+```
+
+网站已提供公开接口 `POST /api/articles/publish`，请求头带 `Authorization: Bearer <CRON_SECRET>` 即可发布文章（`CRON_SECRET` 与定时任务同密钥）。
+
+### 5.2 在本地电脑配置
+
+把本地电脑的项目 `.env.local`（或环境变量）配置为：
+
+```ini
+AI_API_KEY=qoder-local
+AI_BASE_URL=http://127.0.0.1:18082/v1
+AI_MODEL=qwen3.8-flash
+NEXT_PUBLIC_SITE_URL=https://你的域名
+CRON_SECRET=你的VPS网站上的CRON_SECRET
+```
+
+### 5.3 手动发布一篇
+
+```bash
+node scripts/local-publish.mjs                    # 随机主题
+node scripts/local-publish.mjs "2026年射手座运势"  # 指定主题
+```
+
+脚本会：调用本地模型生成 400-600 字文章 → 解析为 JSON → POST 到 `/api/articles/publish` → 打印发布结果。
+
+### 5.4 每天定时自动发布
+
+**Windows（任务计划程序）**：
+
+```bat
+schtasks /Create /TN "XuanyuPublish" /TR "node D:\xuan-yu\scripts\local-publish.mjs" /SC DAILY /ST 08:00
+```
+
+**Linux / macOS（crontab）**：
+
+```bash
+0 8 * * * cd /path/to/xuan-yu && node scripts/local-publish.mjs >> /tmp/xuanyu-publish.log 2>&1
+```
+
+### 5.5 注意
+
+- `CRON_SECRET` 是发布密钥：**能发布文章 = 能改写站点内容**，请妥善保管，不要公开。
+- 本地模型生成质量因模型而异（如编程助手模型可能跑题），建议先用指定主题手动试几篇，选内容正常的模型。
+- 如果以后 VPS 升级了内存，也可以改回 VPS 直接生成（配置 `AI_*` 环境变量 + `scripts/cron-daily.sh`），两者可随时切换。

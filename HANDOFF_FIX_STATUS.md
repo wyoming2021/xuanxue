@@ -29,6 +29,8 @@
 - 后台约 3-4 分钟生成成功：`{ id: 'b9718446-...', title: '10月11日运势指南：火土旺相，以柔制刚', status: 'published' }`。
 - `/articles` 列表页实时显示该文章；详情页 HTTP 200 且内容完整（含结尾免责声明）；`/sitemap.xml` 包含该文章 URL。
 
+**低配 VPS 方案（2026-10-11 新增）**：如果 VPS 内存小（1-2G）跑不动模型，可让**本地电脑生成文章后定时推送到网站**——新增 `POST /api/articles/publish`（`CRON_SECRET` Bearer 认证，接收外部生成的文章并直接发布）+ 本地脚本 `scripts/local-publish.mjs`（调用本地模型生成 → 推送发布）。已端到端验证：本地 qwen3.8-flash 生成 → 发布 → 前台可见。Windows 计划任务 / crontab 定时示例见 `docs/VPS_DEPLOYMENT.md` 第 5 节。
+
 **安全提醒**：`.env.local` 中的 `AI_API_KEY`（第三方 API）与 Supabase token 属敏感凭据，只存在本地，不要提交/公开；如已泄露请到服务商后台轮换。
 
 ---
