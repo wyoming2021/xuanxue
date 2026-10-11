@@ -26,3 +26,6 @@ gui-test-screenshots
 # SDK / skill 的构建产物与本地依赖
 packages/*/dist
 skills/**/node_modules
+
+# 本地部署向导（不需要打进网站镜像）
+deploy-wizard

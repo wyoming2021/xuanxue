@@ -1,0 +1,16 @@
+{
+  "name": "xuanyu-deploy-wizard",
+  "version": "1.0.0",
+  "description": "玄学站一键部署向导：填写域名、VPS 服务器信息、Supabase Token，自动在你的 VPS 上部署出可用网站（含数据库初始化、Nginx、HTTPS）。",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ssh2": "^1.15.0"
+  }
+}

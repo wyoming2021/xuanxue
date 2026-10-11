@@ -22,7 +22,13 @@ sudo XUANYU_SUPABASE_TOKEN=你的PersonalAccessToken \
      bash -c "$(curl -fsSL https://raw.githubusercontent.com/wyoming2021/xuanxue/master/scripts/vps-deploy.sh)"
 ```
 
-详见 [`docs/VPS_DEPLOYMENT.md`](docs/VPS_DEPLOYMENT.md)。
+**更省事**：用可视化向导，只填域名 + VPS 信息 + Supabase Token 即可自动部署：
+
+```bash
+cd deploy-wizard && npm install && npm start
+```
+
+详见 [`docs/VPS_DEPLOYMENT.md`](docs/VPS_DEPLOYMENT.md) 与 [`deploy-wizard/README.md`](deploy-wizard/README.md)。
 
 本地体验：`npm install` → `npm run setup`（交互式生成 `.env.local`）→ `npm run dev`。
 
