@@ -30,6 +30,22 @@ sudo XUANYU_DOMAIN=example.com \
 
 > 想跳过 HTTPS 只先起服务：加 `XUANYU_SKIP_HTTPS=1`。
 
+### 连 Supabase 数据库都自动建（只需一个 Token）
+
+在 supabase.com → **Account → Access Tokens** 生成一个 Personal Access Token，然后加进环境变量，脚本会**自动创建 Supabase 项目、等待激活、执行 `init.sql`、把 URL 和密钥写进 `.env.local`**——SQL 都不用你粘贴：
+
+```bash
+sudo XUANYU_SUPABASE_TOKEN=你的PersonalAccessToken \
+     XUANYU_DOMAIN=example.com \
+     XUANYU_SITE_NAME=我的玄学站 \
+     bash -c "$(curl -fsSL https://raw.githubusercontent.com/wyoming2021/xuanxue/master/scripts/vps-deploy.sh)"
+```
+
+自动建库后脚本会继续走交互/环境变量配置（此时 Supabase URL 和密钥已自动填入，只需回车确认域名、邮箱等即可）。**唯一仍须人工的一步：注册 Supabase 账号**（邮箱验证、账号归属），这是平台硬性要求。
+
+> ⚠️ 该 Token 权限较高（可管理你的项目），部署完成后建议到 Supabase → Access Tokens 删除它。
+> 可选：`XUANYU_SUPABASE_REGION=us-east-1` 指定区域（默认 `ap-southeast-1` 新加坡）。
+
 ---
 
 ## 1. 前置

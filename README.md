@@ -14,10 +14,12 @@
 2. **初始化数据库**：打开 https://supabase.com → SQL Editor → 整段粘贴执行 [`supabase/init.sql`](supabase/init.sql)（已合并，一次完成）
 3. **绑定你自己的域名**：Vercel → Project → Settings → Domains
 
-**有自己的 VPS？** 一条命令自动部署（装 Docker → 拉代码 → 构建 → Nginx → HTTPS）：
+**有自己的 VPS？** 一条命令自动部署（装 Docker → 拉代码 → 构建 → Nginx → HTTPS）。提供 Supabase Token 还能**自动创建数据库并执行 SQL**：
 
 ```bash
-sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/wyoming2021/xuanxue/master/scripts/vps-deploy.sh)"
+sudo XUANYU_SUPABASE_TOKEN=你的PersonalAccessToken \
+     XUANYU_DOMAIN=example.com \
+     bash -c "$(curl -fsSL https://raw.githubusercontent.com/wyoming2021/xuanxue/master/scripts/vps-deploy.sh)"
 ```
 
 详见 [`docs/VPS_DEPLOYMENT.md`](docs/VPS_DEPLOYMENT.md)。

@@ -126,6 +126,33 @@ ask() {
 echo "# 玄语站配置（由 vps-deploy.sh 自动生成）" >> "$ENV_FILE"
 echo "AUTH_SECRET=$AUTH_SECRET" >> "$ENV_FILE"
 
+# ---- 可选：提供 Supabase Token 时全自动创建并初始化数据库 ----
+if [[ -n "${XUANYU_SUPABASE_TOKEN:-}" ]]; then
+  info "检测到 Supabase Access Token，自动创建并初始化数据库..."
+  if ! command -v node >/dev/null 2>&1; then
+    info "安装 Node.js（运行自动初始化脚本需要）..."
+    apt-get update -qq
+    apt-get install -y -qq nodejs npm
+  fi
+  if ! command -v node >/dev/null 2>&1; then
+    warn "无法安装 Node.js，将改用手动配置 Supabase 流程。"
+  else
+    SUPABASE_ENV_OUT="$(cd "$APP_DIR" && node scripts/supabase-init.mjs \
+      --token "$XUANYU_SUPABASE_TOKEN" \
+      --name "${XUANYU_SITE_NAME:-玄语站}" \
+      --region "${XUANYU_SUPABASE_REGION:-ap-southeast-1}" \
+      --print-env 2>/tmp/supabase-init.err)"
+    XUANYU_SUPABASE_URL="$(echo "$SUPABASE_ENV_OUT" | grep '^NEXT_PUBLIC_SUPABASE_URL=' | cut -d= -f2-)"
+    XUANYU_SERVICE_KEY="$(echo "$SUPABASE_ENV_OUT" | grep '^SUPABASE_SERVICE_ROLE_KEY=' | cut -d= -f2-)"
+    if [[ -z "$XUANYU_SUPABASE_URL" || -z "$XUANYU_SERVICE_KEY" ]]; then
+      warn "Supabase 自动初始化失败：$(tail -2 /tmp/supabase-init.err)"
+      warn "将改用手动配置流程。"
+    else
+      ok "Supabase 项目已自动创建并初始化"
+    fi
+  fi
+fi
+
 echo -e "\n${CYAN}==== 填写站点配置（直接回车可跳过可选项目）====${NC}"
 ask "① Supabase 项目 URL"            XUANYU_SUPABASE_URL 1
 ask "② Supabase service_role 密钥"   XUANYU_SERVICE_KEY  1
