@@ -1,3 +1,4 @@
+import http from 'node:http';
 import https from 'node:https';
 
 /**
@@ -42,11 +43,12 @@ export function isAiConfigured(): boolean {
 }
 
 /**
- * 使用 Node https 发送 JSON POST 请求。
+ * 使用 Node http/https 发送 JSON POST 请求。
  *
  * 为什么不用 fetch：Node 内置 fetch（undici）默认约 300 秒的 headersTimeout，
  * 而第三方推理模型生成 800-1200 字文章可能超过 5 分钟，导致 UND_ERR_HEADERS_TIMEOUT。
- * 这里改用 https 模块，可自定义超时时间。
+ * 这里改用原生 http/https 模块，可自定义超时时间，并同时支持 http:// 与 https://
+ * 接口（本地模型如 qoder 通常是 http://127.0.0.1:端口）。
  */
 function postJson(
   url: string,
@@ -56,11 +58,13 @@ function postJson(
 ): Promise<{ status: number; data: string }> {
   return new Promise((resolve, reject) => {
     const u = new URL(url);
+    const isHttps = u.protocol === 'https:';
+    const transport = isHttps ? https : http;
     const payload = JSON.stringify(body);
-    const req = https.request(
+    const req = transport.request(
       {
         hostname: u.hostname,
-        port: u.port || 443,
+        port: u.port || (isHttps ? 443 : 80),
         path: `${u.pathname}${u.search}`,
         method: 'POST',
         headers: {
