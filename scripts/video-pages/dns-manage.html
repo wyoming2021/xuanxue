@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>域名解析管理</title>
+<style>
+  body{margin:0;font-family:'Microsoft YaHei',sans-serif;background:#f9fafb;color:#111;}
+  .top{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 40px;display:flex;align-items:center;gap:28px;font-size:15px;}
+  .logo{font-size:20px;font-weight:700;color:#f97316;}
+  .nav a{margin-right:20px;color:#6b7280;text-decoration:none;}
+  .wrap{max-width:1080px;margin:44px auto;background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:32px;box-shadow:0 4px 16px rgba(0,0,0,.04);}
+  .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+  h1{font-size:22px;margin:0;}
+  .domain{color:#f97316;font-weight:700;}
+  .btn{background:#f97316;color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;}
+  table{width:100%;border-collapse:collapse;}
+  th{background:#fafafa;color:#6b7280;font-size:13px;padding:12px;text-align:left;border-bottom:1px solid #e5e7eb;}
+  td{padding:14px 12px;border-bottom:1px solid #f3f4f6;font-size:15px;color:#374151;}
+  .type{display:inline-block;background:#eef2ff;color:#4f46e5;font-weight:700;padding:3px 10px;border-radius:6px;font-size:13px;}
+  .ok{color:#16a34a;font-size:13px;}
+  .warn{background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;font-size:14px;color:#92400e;margin-bottom:20px;}
+</style>
+</head>
+<body>
+  <div class="top"><span class="logo">Namesilo</span><nav class="nav"><a>域名</a><a>解析</a><a>我的账户</a></nav></div>
+  <div class="wrap">
+    <div class="warn">📌 提示：把域名解析到你的 VPS 服务器公网 IP，网站才能通过域名访问。</div>
+    <div class="head">
+      <h1>域名解析管理 · <span class="domain">myxuan.site</span></h1>
+      <button class="btn">添加记录</button>
+    </div>
+    <table>
+      <tr><th>主机记录</th><th>记录类型</th><th>记录值</th><th>TTL</th><th>状态</th></tr>
+      <tr>
+        <td>@</td>
+        <td><span class="type">A</span></td>
+        <td>1.2.3.4（你的 VPS 公网 IP）</td>
+        <td>600</td>
+        <td><span class="ok">✅ 生效中</span></td>
+      </tr>
+      <tr>
+        <td>www</td>
+        <td><span class="type">A</span></td>
+        <td>1.2.3.4（你的 VPS 公网 IP）</td>
+        <td>600</td>
+        <td><span class="ok">✅ 生效中</span></td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>

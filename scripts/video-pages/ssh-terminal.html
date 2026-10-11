@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>VPS 网页终端</title>
+<style>
+  body{margin:0;font-family:'Consolas','Courier New',monospace;background:#0b1020;color:#d1e7d0;height:100vh;overflow:hidden;}
+  .bar{height:42px;background:#1a2233;display:flex;align-items:center;padding:0 16px;gap:8px;font-size:13px;color:#8b9bb4;border-bottom:1px solid #2a3450;}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+  .title{margin-left:10px;}
+  .term{padding:28px 32px;font-size:17px;line-height:1.7;}
+  .green{color:#4ade80;}
+  .white{color:#d1e7d0;}
+  .dim{color:#64748b;}
+  .cursor{display:inline-block;width:9px;height:18px;background:#4ade80;vertical-align:middle;animation:blink 1s step-start infinite;}
+  @keyframes blink{50%{opacity:0;}}
+</style>
+</head>
+<body>
+  <div class="bar">
+    <span class="dot" style="background:#fca5a5;"></span>
+    <span class="dot" style="background:#fcd34d;"></span>
+    <span class="dot" style="background:#6ee7b7;"></span>
+    <span class="title">root@my-vps: ~</span>
+  </div>
+  <div class="term">
+    <div class="dim">Ubuntu 22.04.3 LTS (GNU/Linux 5.15.0-91-generic x86_64)</div>
+    <div class="dim">Welcome to your VPS server!</div>
+    <div class="dim">Last login: Tue Oct 11 08:00:01 2026 from 118.xxx.xx.xx</div>
+    <br>
+    <div class="white">root@my-vps:~# <span class="green">ssh root@你的服务器IP</span></div>
+    <br>
+    <div class="dim">The authenticity of host '1.2.3.4 (1.2.3.4)' can't be established.</div>
+    <div class="white">Are you sure you want to continue connecting (yes/no/<span class="green">fingerprint</span>)?</div>
+    <div class="white">root@my-vps:~# <span class="green">yes</span></div>
+    <br>
+    <div class="white">root@my-vps:~# <span class="cursor"></span></div>
+  </div>
+</body>
+</html>

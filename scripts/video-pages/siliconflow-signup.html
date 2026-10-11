@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>硅基流动 - API 密钥</title>
+<style>
+  body{margin:0;font-family:'Microsoft YaHei',sans-serif;background:#f7f8fc;color:#111;}
+  .top{height:52px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;padding:0 24px;gap:20px;font-size:14px;}
+  .logo{color:#4f46e5;font-weight:800;font-size:18px;}
+  .nav a{color:#6b7280;text-decoration:none;margin-right:16px;}
+  .wrap{display:flex;min-height:calc(100vh - 52px);}
+  .side{width:200px;background:#fff;border-right:1px solid #e5e7eb;padding-top:20px;font-size:14px;color:#6b7280;}
+  .side .item{padding:11px 22px;}
+  .side .item.sel{background:#eef2ff;color:#4f46e5;border-left:3px solid #4f46e5;font-weight:600;}
+  .main{flex:1;padding:36px 44px;}
+  h1{font-size:22px;margin:0 0 20px;}
+  .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:24px;max-width:760px;margin-bottom:20px;}
+  .btn{background:#4f46e5;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;}
+  .key-box{display:flex;align-items:center;gap:12px;background:#f8fafc;border:1px dashed #c7d2fe;border-radius:10px;padding:14px 16px;margin-top:16px;}
+  .key{font-family:Consolas,monospace;color:#4338ca;font-size:15px;word-break:break-all;}
+  table{width:100%;border-collapse:collapse;margin-top:16px;}
+  th{color:#6b7280;font-size:13px;text-align:left;padding:10px;border-bottom:1px solid #e5e7eb;background:#fafafa;}
+  td{padding:12px 10px;border-bottom:1px solid #f3f4f6;font-size:14px;color:#374151;}
+  .free{background:#ecfdf5;color:#059669;padding:3px 10px;border-radius:999px;font-size:12px;}
+</style>
+</head>
+<body>
+  <div class="top"><span class="logo">硅基流动 SiliconFlow</span><nav class="nav"><a>模型广场</a><a>控制台</a></nav></div>
+  <div class="wrap">
+    <div class="side">
+      <div class="item">总览</div>
+      <div class="item sel">API 密钥</div>
+      <div class="item">模型广场</div>
+      <div class="item">账单</div>
+    </div>
+    <div class="main">
+      <h1>API 密钥</h1>
+      <div class="card">
+        <button class="btn">+ 创建 API 密钥</button>
+        <div class="key-box">
+          <span class="key">sk-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</span>
+          <span class="free">已创建</span>
+        </div>
+        <p style="font-size:13px;color:#9ca3af;margin:12px 0 0;">将此密钥填入网站 .env.local 的 AI_API_KEY，用于 AI 自动写文章。</p>
+      </div>
+      <div class="card">
+        <table>
+          <tr><th>免费模型</th><th>类型</th><th>费用</th></tr>
+          <tr><td>Qwen/Qwen2.5-7B-Instruct</td><td>文本生成</td><td><span class="free">FREE 免费</span></td></tr>
+          <tr><td>Qwen/Qwen2.5-14B-Instruct</td><td>文本生成</td><td><span class="free">FREE 免费</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

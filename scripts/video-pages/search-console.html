@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Google Search Console</title>
+<style>
+  body{margin:0;font-family:'Microsoft YaHei',sans-serif;background:#fff;color:#202124;}
+  .top{height:52px;background:#fff;border-bottom:1px solid #e8eaed;display:flex;align-items:center;padding:0 24px;gap:16px;font-size:14px;}
+  .logo{color:#4285f4;font-weight:800;font-size:18px;}
+  .nav a{color:#5f6368;text-decoration:none;margin-right:16px;}
+  .wrap{display:flex;min-height:calc(100vh - 52px);}
+  .side{width:220px;border-right:1px solid #e8eaed;padding-top:16px;font-size:14px;color:#3c4043;}
+  .side .item{padding:12px 24px;}
+  .side .item.sel{background:#e8f0fe;color:#1967d2;border-right:3px solid #1967d2;font-weight:600;}
+  .main{flex:1;padding:36px 48px;max-width:960px;}
+  h1{font-size:20px;margin:0 0 6px;}
+  .url{color:#5f6368;font-size:14px;margin-bottom:28px;}
+  .card{border:1px solid #dadce0;border-radius:10px;padding:24px;margin-bottom:20px;}
+  .label{font-size:13px;color:#5f6368;margin-bottom:10px;}
+  .row{display:flex;gap:10px;align-items:center;}
+  .input{flex:1;border:1px solid #dadce0;border-radius:6px;padding:10px 12px;font-size:15px;}
+  .btn{background:#1a73e8;color:#fff;border:none;border-radius:6px;padding:10px 22px;font-size:14px;font-weight:600;cursor:pointer;}
+  .ok{background:#e6f4ea;color:#137333;border-radius:6px;padding:10px 14px;font-size:14px;margin-top:14px;}
+  table{width:100%;border-collapse:collapse;margin-top:14px;}
+  th{color:#5f6368;font-size:13px;text-align:left;padding:10px;border-bottom:1px solid #e8eaed;}
+  td{padding:12px 10px;border-bottom:1px solid #f1f3f4;font-size:14px;}
+  .discovered{color:#137333;font-size:13px;}
+</style>
+</head>
+<body>
+  <div class="top"><span class="logo">Google Search Console</span><nav class="nav"><a>概览</a><a>性能</a><a>索引</a></nav></div>
+  <div class="wrap">
+    <div class="side">
+      <div class="item">概览</div>
+      <div class="item">性能</div>
+      <div class="item">URL 检查</div>
+      <div class="item">索引编制</div>
+      <div class="item sel">Sitemap</div>
+      <div class="item">设置</div>
+    </div>
+    <div class="main">
+      <h1>Sitemap</h1>
+      <div class="url">https://myxuan.site/</div>
+      <div class="card">
+        <div class="label">添加新的站点地图</div>
+        <div class="row">
+          <div class="input">sitemap.xml</div>
+          <button class="btn">提交</button>
+        </div>
+        <div class="ok">✅ 已提交：https://myxuan.site/sitemap.xml · 状态：成功</div>
+        <table>
+          <tr><th>站点地图</th><th>状态</th><th>发现的网址</th></tr>
+          <tr><td>sitemap.xml</td><td><span class="discovered">成功</span></td><td>23</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

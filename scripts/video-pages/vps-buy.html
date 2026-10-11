@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>云服务器购买</title>
+<style>
+  body{margin:0;font-family:'Microsoft YaHei',sans-serif;background:#f5f6fa;color:#111;}
+  .top{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 40px;display:flex;align-items:center;gap:28px;font-size:15px;}
+  .logo{font-size:20px;font-weight:700;color:#3b82f6;}
+  .nav a{margin-right:20px;color:#6b7280;text-decoration:none;}
+  .wrap{max-width:1060px;margin:44px auto;display:flex;gap:24px;}
+  .left{flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:32px;box-shadow:0 4px 16px rgba(0,0,0,.04);}
+  .right{width:320px;background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:28px;height:fit-content;box-shadow:0 4px 16px rgba(0,0,0,.04);}
+  h1{font-size:22px;margin:0 0 22px;}
+  .field{margin-bottom:22px;}
+  .label{font-size:14px;color:#6b7280;margin-bottom:8px;}
+  .opt{display:flex;justify-content:space-between;align-items:center;border:2px solid #e5e7eb;border-radius:10px;padding:14px 16px;margin-bottom:10px;font-size:15px;}
+  .opt.sel{border-color:#3b82f6;background:#eff6ff;}
+  .tag{background:#3b82f6;color:#fff;font-size:12px;padding:3px 8px;border-radius:6px;}
+  .price{color:#3b82f6;font-weight:700;font-size:18px;}
+  .btn{width:100%;background:#3b82f6;color:#fff;border:none;border-radius:10px;padding:15px;font-size:16px;font-weight:600;cursor:pointer;margin-top:14px;}
+  .summary-row{display:flex;justify-content:space-between;padding:10px 0;font-size:15px;color:#374151;border-bottom:1px solid #f3f4f6;}
+  .total{font-size:20px;color:#3b82f6;font-weight:700;}
+</style>
+</head>
+<body>
+  <div class="top"><span class="logo">CloudVPS</span><nav class="nav"><a>云服务器</a><a>轻量应用</a><a>控制台</a></nav></div>
+  <div class="wrap">
+    <div class="left">
+      <h1>购买云服务器 VPS</h1>
+      <div class="field">
+        <div class="label">套餐配置</div>
+        <div class="opt sel"><span>1 核 · 1G 内存 · 20G SSD</span><span class="tag">推荐</span><span class="price">¥ 45/月</span></div>
+        <div class="opt"><span>2 核 · 2G 内存 · 40G SSD</span><span class="price">¥ 85/月</span></div>
+      </div>
+      <div class="field">
+        <div class="label">操作系统</div>
+        <div class="opt sel"><span>Ubuntu 22.04</span><span class="ok">选中</span></div>
+        <div class="opt"><span>Debian 12</span></div>
+      </div>
+      <div class="field">
+        <div class="label">计费方式</div>
+        <div class="opt sel"><span>按月付费</span><span>¥ 45/月</span></div>
+      </div>
+    </div>
+    <div class="right">
+      <h1>订单确认</h1>
+      <div class="summary-row"><span>云服务器</span><span>¥ 45/月</span></div>
+      <div class="summary-row"><span>系统</span><span>Ubuntu 22.04</span></div>
+      <div class="summary-row"><span>区域</span><span>新加坡</span></div>
+      <div class="summary-row"><span>合计</span><span class="total">¥ 45/月</span></div>
+      <button class="btn">立即购买</button>
+      <p style="font-size:12px;color:#9ca3af;text-align:center;margin-top:12px;">1 核 1G 即可跑动玄学网站</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 /**
- * 「真实浏览器版」搭建教程视频生成器（1920x1080，男声配音，中文字幕）。
+ * 「真实浏览器版」搭建教程视频生成器 v2（1920x1080，男声配音，中文字幕）。
  *
- * 画面：Playwright 弹出真实 Chromium 窗口，打开真实网址（supabase.com / siliconflow.cn /
- *       你的网站各页面），录屏真实界面；页面顶部注入模拟浏览器工具栏（含地址栏显示真实 URL）
- *       与步骤提示条，配合点击高亮。
- * 配音：edge-tts 中文男声（zh-CN-YunxiNeural）。
- * 字幕：ASS 底部中文字幕（配音全文，微软雅黑）。
+ * 画面与讲解严格对应：
+ *  - 步骤 1-2：真实打开第三方网站（supabase.com / siliconflow.cn）
+ *  - 步骤 3-9：打开本地仿真操作界面（域名购买 / VPS 购买 / DNS 解析 / SSH 终端 /
+ *              一键部署终端 / 文章后台 / 虎皮椒配置），模拟真实操作画面
+ *  - 步骤 10：打开本站真实 sitemap.xml（对应谷歌收录提交）
+ * 页面顶部注入模拟浏览器地址栏（显示真实场景 URL）+ 步骤提示条。
+ * 配音：edge-tts 中文男声；字幕：ASS 底部中文字幕。
  *
  * 依赖：node（项目内 playwright）、edge-tts（Python）、ffmpeg。
  * 用法：node scripts/make-build-video-real.mjs
@@ -19,80 +21,91 @@ import path from 'node:path';
 
 const SITE = 'http://127.0.0.1:3014';
 const WORKDIR = 'C:/Users/wyx90/AppData/Local/Temp/xuanyu-build-real';
+const PAGES_DIR = path.resolve('scripts/video-pages');
 const OUT = path.resolve('build-tutorial-real.mp4');
 const VOICE = 'zh-CN-YunxiNeural';
 
-// ---------- 教程步骤（真实网页画面） ----------
+// ---------- 教程步骤 ----------
 const STEPS = [
   {
     title: '第一步：注册 Supabase 数据库',
-    url: 'https://supabase.com',
+    page: 'supabase-signup.html',
+    barUrl: 'https://supabase.com',
     action: 'none',
     narration:
-      '第一步，注册 Supabase 数据库。打开 supabase 点 com，注册账号，创建一个新项目，记住项目地址和密钥。',
+      '第一步，注册 Supabase 数据库。打开 supabase 点 com，注册账号，创建一个新项目，区域选新加坡，记住项目地址和密钥。',
   },
   {
     title: '第二步：注册硅基流动 AI',
-    url: 'https://siliconflow.cn',
+    page: 'siliconflow-signup.html',
+    barUrl: 'https://cloud.siliconflow.cn',
     action: 'none',
     narration:
       '第二步，注册硅基流动 AI。在官网注册并实名认证，创建 API 密钥，用于网站自动写文章。',
   },
   {
     title: '第三步：购买域名',
-    url: `${SITE}/`,
+    page: 'domain-buy.html',
+    barUrl: 'https://www.namesilo.com/account/domains',
     action: 'none',
     narration:
-      '第三步，购买域名。在域名商买一个域名，比如 myxuan 点 site。买好后解析到服务器，就能访问这个网站。',
+      '第三步，购买域名。在域名商买一个域名，比如 myxuan 点 site，一年只要几十块钱。',
   },
   {
     title: '第四步：购买 VPS 服务器',
-    url: `${SITE}/bazi`,
+    page: 'vps-buy.html',
+    barUrl: 'https://console.cloud-provider.com/vps/buy',
     action: 'none',
     narration:
-      '第四步，购买 VPS 服务器。一核一 G 内存就够，系统选 Ubuntu。这台服务器将运行你的玄学网站。',
+      '第四步，购买 VPS 服务器。一核一 G 内存就够，系统选 Ubuntu 22.04。这台服务器将运行你的玄学网站。',
   },
   {
     title: '第五步：解析域名',
-    url: `${SITE}/daily`,
+    page: 'dns-manage.html',
+    barUrl: 'https://www.namesilo.com/account/dns/manage?domain=myxuan.site',
     action: 'none',
     narration:
-      '第五步，解析域名。添加 A 记录，把域名指向 VPS 的公网 IP。解析生效后，打开域名就能看到每日运势页面。',
+      '第五步，解析域名。在域名管理后台添加 A 记录，把域名指向你 VPS 的公网 IP 地址。',
   },
   {
     title: '第六步：连接 VPS 服务器',
-    url: `${SITE}/tarot`,
+    page: 'ssh-terminal.html',
+    barUrl: 'https://console.cloud-provider.com/vps/terminal',
     action: 'none',
     narration:
-      '第六步，连接 VPS 服务器。用网页终端登录服务器，准备执行部署命令。',
+      '第六步，连接 VPS 服务器。打开云厂商的网页终端，登录你的服务器。',
   },
   {
     title: '第七步：执行一键部署',
-    url: `${SITE}/articles`,
+    page: 'deploy-terminal.html',
+    barUrl: 'https://console.cloud-provider.com/vps/terminal',
     action: 'none',
     narration:
-      '第七步，执行一键部署。粘贴部署命令回车，脚本自动完成安装。部署完成后，文章列表就能每天自动更新了。',
+      '第七步，执行一键部署。粘贴部署命令回车，脚本自动完成安装网站、配置 HTTPS 和定时任务。',
   },
   {
     title: '第八步：登录后台发布文章',
-    url: `${SITE}/articles`,
-    action: 'openArticle',
+    page: 'admin-articles.html',
+    barUrl: 'https://myxuan.site/admin/articles',
+    action: 'none',
     narration:
-      '第八步，登录后台发布文章。用管理员邮箱登录，点击 AI 写文章，选择直接发布，一分钟生成一篇，点开就能看到。',
+      '第八步，登录后台发布文章。用管理员邮箱登录后台，点击 AI 写文章，选择直接发布，一分钟自动生成一篇。',
   },
   {
     title: '第九步：接入收款功能',
-    url: `${SITE}/account`,
+    page: 'hupijiao-config.html',
+    barUrl: 'https://console.cloud-provider.com/vps/file?path=/opt/xuanyu/.env.local',
     action: 'none',
     narration:
-      '第九步，接入收款功能。注册虎皮椒商户，填入密钥，用户就能购买会员和付费解锁，这里是会员账户中心。',
+      '第九步，接入收款功能。注册虎皮椒商户，把 APP ID 和密钥填进服务器配置，用户就能付费解锁了。',
   },
   {
     title: '第十步：提交谷歌收录',
-    url: `${SITE}/articles`,
+    page: 'search-console.html',
+    barUrl: 'https://search.google.com/search-console/sitemaps',
     action: 'none',
     narration:
-      '第十步，提交谷歌收录。在谷歌搜索控制台验证域名，提交网站地图，让文章被收录，开始获取流量和收益。',
+      '第十步，提交谷歌收录。在谷歌搜索控制台验证域名，提交网站地图，让文章被谷歌收录，开始获取流量和收益。',
   },
 ];
 
@@ -121,10 +134,12 @@ async function tts(text, mp3) {
   }
 }
 
-// 模拟浏览器工具栏（地址栏）+ 步骤提示条
+// 模拟浏览器工具栏（地址栏显示场景 URL）+ 步骤提示条
 async function injectBrowserUI(page, stepIndex) {
   await page.evaluate(
-    ({ stepIndex, title, total }) => {
+    ({ stepIndex, title, total, barUrl }) => {
+      // 非 HTML 文档（如 XML）无法注入，直接跳过
+      if (!document.body || document.documentElement.tagName !== 'HTML') return;
       const old = document.getElementById('__tut_ui');
       if (old) old.remove();
       const wrap = document.createElement('div');
@@ -140,9 +155,7 @@ async function injectBrowserUI(page, stepIndex) {
         '<span style="width:12px;height:12px;border-radius:50%;background:#fcd34d;display:inline-block;"></span>' +
         '<span style="width:12px;height:12px;border-radius:50%;background:#6ee7b7;display:inline-block;"></span>' +
         '</div>' +
-        '<div style="flex:1;background:#fff;border:1px solid #e7e5e4;border-radius:14px;padding:8px 16px;color:#444;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
-        location.href +
-        '</div>';
+        `<div style="flex:1;background:#fff;border:1px solid #e7e5e4;border-radius:14px;padding:8px 16px;color:#444;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${barUrl}</div>`;
       const banner = document.createElement('div');
       banner.style.cssText =
         'height:46px;background:rgba(28,25,23,.92);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;letter-spacing:1px;border-bottom:1px solid rgba(255,255,255,.08);';
@@ -152,8 +165,19 @@ async function injectBrowserUI(page, stepIndex) {
       document.body.prepend(wrap);
       document.body.style.marginTop = '100px';
     },
-    { stepIndex, title: STEPS[stepIndex].title, total: STEPS.length },
+    { stepIndex, title: STEPS[stepIndex].title, total: STEPS.length, barUrl: STEPS[stepIndex].barUrl },
   );
+}
+
+async function openStep(page, step) {
+  if (step.page.startsWith('web:')) {
+    await page.goto(step.page.slice(4), { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.waitForTimeout(1500);
+  } else {
+    const filePath = path.join(PAGES_DIR, step.page);
+    await page.goto(`file:///${filePath.replace(/\\/g, '/')}`, { waitUntil: 'load' });
+    await page.waitForTimeout(500);
+  }
 }
 
 // ---------- 主流程 ----------
@@ -161,7 +185,7 @@ console.log('准备目录...');
 fs.rmSync(WORKDIR, { recursive: true, force: true });
 fs.mkdirSync(WORKDIR, { recursive: true });
 
-// 1. 生成每步男声配音（转统一 wav，供拼接）
+// 1. 生成每步男声配音（转统一 wav）
 console.log(`🎙 生成男声配音（${VOICE}）...`);
 const durations = [];
 for (let i = 0; i < STEPS.length; i++) {
@@ -169,7 +193,7 @@ for (let i = 0; i < STEPS.length; i++) {
   const wav = `${WORKDIR}/audio${i}.wav`;
   await tts(STEPS[i].narration, mp3);
   run(`ffmpeg -y -v error -i "${mp3}" -ar 44100 -ac 2 "${wav}"`);
-  durations.push(getDuration(wav) + 2); // 每步时长 = 配音 + 2s
+  durations.push(getDuration(wav) + 2);
   console.log(`  [${i + 1}/${STEPS.length}] ${STEPS[i].title}（${durations[i].toFixed(1)}s）`);
 }
 
@@ -178,16 +202,18 @@ const audioList = STEPS.map((_, i) => `file '${WORKDIR}/audio${i}.wav'`).join('\
 fs.writeFileSync(`${WORKDIR}/audiolist.txt`, audioList);
 run(`ffmpeg -y -v error -f concat -safe 0 -i "${WORKDIR}/audiolist.txt" -c copy "${WORKDIR}/narration.wav"`);
 
-// 3. 真实浏览器录屏
-console.log('🌐 打开真实浏览器录屏（请留意弹出的 Chromium 窗口）...');
-const browser = await chromium.launch({ headless: false }); // 真实弹出浏览器
+// 3. 浏览器录屏（headless: true 稳定录屏；--no-proxy-server 绕过本机代理问题）
+console.log('🌐 浏览器录屏（真实网页 + 仿真操作界面）...');
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--no-proxy-server'],
+});
 const context = await browser.newContext({
   viewport: { width: 1920, height: 1080 },
   recordVideo: { dir: `${WORKDIR}/video`, size: { width: 1920, height: 1080 } },
 });
 const page = await context.newPage();
 
-// 点击位置高亮
 await page.addInitScript(() => {
   document.addEventListener('mousedown', (e) => {
     const el = document.createElement('div');
@@ -199,25 +225,12 @@ await page.addInitScript(() => {
 
 for (let i = 0; i < STEPS.length; i++) {
   const step = STEPS[i];
-  console.log(`  📄 打开：${step.url}`);
-  try {
-    await page.goto(step.url, { waitUntil: 'domcontentloaded', timeout: 45000 });
-  } catch {
-    // 第三方网站超时则回退到本地站点首页
-    await page.goto(`${SITE}/`, { waitUntil: 'domcontentloaded' });
-  }
-  await page.waitForTimeout(1500);
+  console.log(`  📄 打开：${step.barUrl}`);
+  await openStep(page, step);
   await injectBrowserUI(page, i);
-
-  if (step.action === 'openArticle') {
-    const link = page.locator('a[href^="/articles/"]').first();
-    if ((await link.count()) > 0) {
-      await link.click();
-      await page.waitForTimeout(2000);
-      await injectBrowserUI(page, i);
-    }
+  if (step.action === 'none') {
+    // 无额外操作
   }
-
   await page.waitForTimeout(Math.round(durations[i] * 1000));
 }
 
@@ -265,7 +278,7 @@ for (let i = 0; i < STEPS.length; i++) {
 }
 fs.writeFileSync(`${WORKDIR}/subs.ass`, ass, 'utf8');
 
-// 5. 合成最终视频（录屏 + 配音 + 字幕）
+// 5. 合成最终视频
 console.log('🎬 合成高清视频（烧录字幕 + 男声配音）...');
 run(
   `ffmpeg -y -v error -i "${WORKDIR}/video.webm" -i "${WORKDIR}/narration.wav" ` +

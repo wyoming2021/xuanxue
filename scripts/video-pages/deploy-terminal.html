@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>一键部署脚本执行</title>
+<style>
+  body{margin:0;font-family:'Consolas','Courier New',monospace;background:#0b1020;color:#d1e7d0;height:100vh;overflow:hidden;}
+  .bar{height:42px;background:#1a2233;display:flex;align-items:center;padding:0 16px;gap:8px;font-size:13px;color:#8b9bb4;border-bottom:1px solid #2a3450;}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+  .term{padding:28px 32px;font-size:16px;line-height:1.75;}
+  .cmd{color:#93c5fd;}
+  .ok{color:#4ade80;}
+  .dim{color:#64748b;}
+  .info{color:#d1e7d0;}
+</style>
+</head>
+<body>
+  <div class="bar">
+    <span class="dot" style="background:#fca5a5;"></span>
+    <span class="dot" style="background:#fcd34d;"></span>
+    <span class="dot" style="background:#6ee7b7;"></span>
+    <span class="title">root@my-vps: ~</span>
+  </div>
+  <div class="term">
+    <div class="cmd">root@my-vps:~# sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/wyoming2021/xuanxue/master/scripts/vps-deploy.sh)"</div>
+    <br>
+    <div class="info">[1/6] 检测环境... <span class="ok">✅ Docker 已安装</span></div>
+    <div class="info">[2/6] 拉取项目代码... <span class="ok">✅ 完成</span></div>
+    <div class="info">[3/6] 生成 .env.local 配置... <span class="ok">✅ 完成</span></div>
+    <div class="info">[4/6] 构建并启动容器... <span class="ok">✅ 容器已启动</span></div>
+    <div class="info">[5/6] 配置 Nginx 反代 + HTTPS 证书... <span class="ok">✅ 证书签发成功</span></div>
+    <div class="info">[6/6] 配置每日 08:00 定时任务... <span class="ok">✅ 完成</span></div>
+    <br>
+    <div class="ok">🎉 部署成功！你的玄学网站已上线：</div>
+    <div class="ok">   https://myxuan.site</div>
+    <br>
+    <div class="cmd">root@my-vps:~# <span class="cursor">█</span></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>服务器配置 · .env.local</title>
+<style>
+  body{margin:0;font-family:'Consolas','Courier New',monospace;background:#0b1020;color:#d1e7d0;height:100vh;overflow:hidden;}
+  .bar{height:42px;background:#1a2233;display:flex;align-items:center;padding:0 16px;gap:8px;font-size:13px;color:#8b9bb4;border-bottom:1px solid #2a3450;}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+  .wrap{padding:30px 40px;}
+  .path{color:#93c5fd;margin-bottom:16px;}
+  .line{line-height:1.9;font-size:16px;white-space:pre-wrap;}
+  .key{color:#a5b4fc;}
+  .val{color:#d1e7d0;}
+  .hl{background:#422006;border:1px solid #b45309;border-radius:6px;padding:2px 6px;color:#fbbf24;}
+  .comment{color:#64748b;}
+  .cursor{display:inline-block;width:9px;height:18px;background:#4ade80;vertical-align:middle;animation:blink 1s step-start infinite;}
+  @keyframes blink{50%{opacity:0;}}
+</style>
+</head>
+<body>
+  <div class="bar">
+    <span class="dot" style="background:#fca5a5;"></span>
+    <span class="dot" style="background:#fcd34d;"></span>
+    <span class="dot" style="background:#6ee7b7;"></span>
+    <span class="title">nano /opt/xuanyu/.env.local</span>
+  </div>
+  <div class="wrap">
+    <div class="path">/opt/xuanyu/.env.local</div>
+    <div class="line"><span class="comment"># 支付配置（虎皮椒）</span></div>
+    <div class="line"><span class="key">HUPIJAO_APP_ID</span>=<span class="hl">你的APP_ID</span></div>
+    <div class="line"><span class="key">HUPIJAO_APP_SECRET</span>=<span class="hl">你的APP_SECRET</span></div>
+    <div class="line"><span class="key">HUPIJAO_NOTIFY_URL</span>=<span class="val">https://myxuan.site/api/payment/callback</span></div>
+    <br>
+    <div class="line"><span class="comment"># 保存后重启容器使配置生效</span></div>
+    <div class="line"><span class="key">cd /opt/xuanyu</span> && <span class="val">sudo docker compose restart</span></div>
+    <br>
+    <div class="line"><span class="cursor"></span></div>
+  </div>
+</body>
+</html>

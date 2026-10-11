@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Supabase - New project</title>
+<style>
+  body{margin:0;font-family:'Microsoft YaHei',sans-serif;background:#1e1e1e;color:#e5e7eb;}
+  .top{height:52px;background:#161616;border-bottom:1px solid #2a2a2a;display:flex;align-items:center;padding:0 24px;gap:20px;font-size:14px;}
+  .logo{color:#3ecf8e;font-weight:800;font-size:18px;}
+  .nav a{color:#9ca3af;text-decoration:none;margin-right:16px;}
+  .wrap{display:flex;min-height:calc(100vh - 52px);}
+  .side{width:220px;background:#161616;border-right:1px solid #2a2a2a;padding-top:20px;font-size:14px;color:#9ca3af;}
+  .side .item{padding:11px 22px;}
+  .side .item.sel{background:#242424;color:#3ecf8e;border-left:3px solid #3ecf8e;}
+  .main{flex:1;padding:36px 48px;}
+  h1{font-size:24px;margin:0 0 8px;color:#fff;}
+  .sub{color:#9ca3af;font-size:14px;margin-bottom:28px;}
+  .card{background:#242424;border:1px solid #333;border-radius:14px;padding:28px;max-width:620px;}
+  .label{font-size:13px;color:#9ca3af;margin-bottom:8px;}
+  .input{width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;padding:11px 14px;color:#e5e7eb;font-size:15px;margin-bottom:20px;}
+  .sel{width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;padding:11px 14px;color:#e5e7eb;font-size:15px;margin-bottom:20px;}
+  .btn{background:#3ecf8e;color:#06281e;font-weight:700;border:none;border-radius:8px;padding:12px 26px;font-size:15px;cursor:pointer;}
+  .tag{background:#3ecf8e20;color:#3ecf8e;border:1px solid #3ecf8e55;padding:4px 12px;border-radius:999px;font-size:13px;margin-left:10px;}
+</style>
+</head>
+<body>
+  <div class="top"><span class="logo">Supabase</span><nav class="nav"><a>Dashboard</a><a>Projects</a><a>SQL</a></nav></div>
+  <div class="wrap">
+    <div class="side">
+      <div class="item sel">Projects</div>
+      <div class="item">API Keys</div>
+      <div class="item">Auth</div>
+      <div class="item">Database</div>
+      <div class="item">Storage</div>
+    </div>
+    <div class="main">
+      <h1>New project <span class="tag">Free 免费</span></h1>
+      <div class="sub">创建一个新项目，用于存储玄学网站数据</div>
+      <div class="card">
+        <div class="label">项目名称 Name</div>
+        <div class="input">xuanxue-site</div>
+        <div class="label">数据库密码 Database Password</div>
+        <div class="input">••••••••••</div>
+        <div class="label">区域 Region</div>
+        <div class="sel">Southeast Asia (Singapore) 新加坡</div>
+        <div class="label">套餐 Plan</div>
+        <div class="sel">Free · 免费（每月 500MB 数据库）</div>
+        <button class="btn">Create new project</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
