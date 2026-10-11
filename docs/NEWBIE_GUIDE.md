@@ -151,3 +151,4 @@ A：可以先用 Vercel 免费部署（见 `docs/DEPLOYMENT.md`），但免费�
 - 技术部署细节：`docs/DEPLOYMENT.md`（Vercel）、`docs/VPS_DEPLOYMENT.md`（VPS）
 - 源码仓库：`https://github.com/wyoming2021/xuanxue`
 - 一键部署脚本：`scripts/vps-deploy.sh`（已自动完成 90% 工作）
+- **自动生成视频教程**：`bash scripts/make-tutorial-video.sh`（Windows 装 ffmpeg 后运行，自动生成中文配音 + 文字卡片的 mp4 教程视频）
