@@ -152,7 +152,7 @@ async function callChatCompletion(
   const commonBody = {
     model,
     messages,
-    temperature: 0.8,
+    temperature: 0.7,
     // 推理链可能很长（Atria-Dawn-Preview 等推理模型），max_tokens 给足，
     // 避免 token 全被 reasoning_content 消耗导致 content 为空。
     max_tokens: 6000,
@@ -189,7 +189,9 @@ export async function generateArticle(topic?: string): Promise<GeneratedArticle>
 - 标题：15-30 字，吸引人且包含主题关键词
 - 摘要：一段话，60 字以内
 - 正文：1200-1500 字，分 5-6 个小节，每个小节用 ## 小标题（如 ## 今日整体运势、## 爱情运势、## 事业运势、## 财运指南、## 健康提醒）
-- 每节内容具体可读，涉及八字、塔罗、星座、五行、紫微等传统文化知识，语气温和理性
+- 全文使用规范简体中文，禁止出现英文单词（专有名词除外），句子自然流畅，像真人编辑写的文章，避免模板化机械罗列
+- 每节内容具体可读，重点展开 4-5 个星座/命理细节（融入星象、五行、紫微依据），其余一笔带过，避免机械罗列，确保正文不少于 1200 字
+- 涉及八字、塔罗、星座、五行、紫微等传统文化知识，语气温和理性
 - 结尾加一段：以上内容基于传统命理与占卜文化，仅供娱乐参考。
 - 只返回 JSON，不要 markdown 代码块：
 {"title":"文章标题","summary":"一句话摘要","content":"## 小节标题\\n\\n段落内容\\n\\n## 小节标题\\n\\n..."}`;
