@@ -1,10 +1,35 @@
 ﻿# 玄语（xuan-yu）修复状态交接文档
 
-- 更新日期：2026-09-07（含 E2E 真实测试结果）
+- 更新日期：2026-10-11（含 AI 文章生成端到端验证）
 - 交接对象：后续接手修复工作的 Agent / 开发者
-- 当前结论：**P0 全部 4 项、P1 全部 5 项、P2 全部 7 项已完成代码修复并通过端到端真实测试；P3 已完成 5 项，剩余 3 项待办。**
+- 当前结论：**P0 全部 4 项、P1 全部 5 项、P2 全部 7 项已完成代码修复并通过端到端真实测试；P3 已完成 5 项，剩余 3 项待办。AI 每日文章生成已用真实第三方 API + 真实 Supabase 端到端跑通（异步化，见第 0 节）。**
 - 当前阶段：支付安全契约、GUI 主流程、OTP 登录闭环（含失败锁定、IP 限流）均已实测验证；测试中发现并修复了 2 个新缺陷（D1/D2，见第 10 节）。
 - 上线判断：**代码层面已具备上线条件，但上线收款前必须先在生产数据库执行 `003_rls_and_orders_product.sql` 迁移，并用小额真实订单走通一次虎皮椒支付回调（本地无真实 Supabase/虎皮椒凭证，无法测真实扣款）。**
+
+---
+
+## 0. AI 文章生成修复（2026-10-11）
+
+**问题**：调用 `/api/cron/generate-article` 报 `UND_ERR_HEADERS_TIMEOUT`——第三方推理模型 API（Atria-Dawn-Preview）生成文章耗时超过 Node fetch 默认 300 秒头部超时；即使等待 10 分钟仍未返回。
+
+**根因**：该 API 是推理模型，先输出大量 `reasoning_content` 再输出正文；请求 800-1200 字长文时推理链过长，响应极慢（>10 分钟）。实测：把正文缩到 400-600 字并加 `reasoning_effort: "low"` 后，生成约 82 秒完成。
+
+**修复**：
+- `lib/ai-generate.ts`：改用 Node `https` 模块发请求（10 分钟自定义超时），规避 undici `headersTimeout`；正文缩至 400-600 字；`max_tokens` 6000（防止推理链耗尽 token 导致 content 为空）；请求加 `reasoning_effort: "low"`，服务商不支持时（400）自动降级重试；content 为空时错误信息包含 finish_reason/usage 便于诊断。
+- `lib/article-generator.ts`（新增）：共享的「AI 生成 + 写入 articles 表」函数。
+- `app/api/cron/generate-article`：**异步化**——立即返回 202，后台生成，失败自动重试 3 次（间隔 30 秒）。
+- `app/api/admin/articles/generate`：同样异步化，提交后后台生成。
+- `app/admin/articles/GenerateForm`：适配异步提示（提交后等待 1-10 分钟再刷新列表）。
+- `app/articles/page.tsx`：`force-dynamic`——修复文章列表被构建时静态化导致新文章不显示的问题。
+- `app/sitemap.ts`：动态生成，并追加已发布文章 URL（供 SEO 收录每日新文章）。
+- `scripts/cron-daily.sh`：curl 超时 120→600s；改用 grep 解析 `.env.local`（兼容 `EMAIL_FROM=名称 <邮箱>` 这类带引号/空格的值，避免 bash source 语法错误）。
+
+**端到端验证（真实第三方 API + 真实 Supabase）**：
+- `curl -H "Authorization: Bearer <CRON_SECRET>" .../api/cron/generate-article` → `HTTP 202`（0.13s 返回）。
+- 后台约 3-4 分钟生成成功：`{ id: 'b9718446-...', title: '10月11日运势指南：火土旺相，以柔制刚', status: 'published' }`。
+- `/articles` 列表页实时显示该文章；详情页 HTTP 200 且内容完整（含结尾免责声明）；`/sitemap.xml` 包含该文章 URL。
+
+**安全提醒**：`.env.local` 中的 `AI_API_KEY`（第三方 API）与 Supabase token 属敏感凭据，只存在本地，不要提交/公开；如已泄露请到服务商后台轮换。
 
 ---
 
