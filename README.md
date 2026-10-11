@@ -30,6 +30,8 @@ cd deploy-wizard && npm install && npm start
 
 详见 [`docs/VPS_DEPLOYMENT.md`](docs/VPS_DEPLOYMENT.md) 与 [`deploy-wizard/README.md`](deploy-wizard/README.md)。
 
+> 🐣 **新人小白？从这份开始**：零基础搭建 + 盈利保姆教程（域名/VPS/支付/谷歌收录全流程）→ [`docs/NEWBIE_GUIDE.md`](docs/NEWBIE_GUIDE.md)
+
 本地体验：`npm install` → `npm run setup`（交互式生成 `.env.local`）→ `npm run dev`。
 
 只要计算引擎的话直接用 [`packages/xuanyu-core`](packages/xuanyu-core)。详细步骤见 [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)。
