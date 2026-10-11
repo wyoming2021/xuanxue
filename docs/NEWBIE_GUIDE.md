@@ -154,3 +154,4 @@ A：可以先用 Vercel 免费部署（见 `docs/DEPLOYMENT.md`），但免费�
 - **自动生成视频教程**：
   - 基础版（文字卡片 + 中文配音）：`bash scripts/make-tutorial-video.sh`
   - 专业版（**真实界面录屏 + 点击高亮 + 中文字幕 + 配音**）：先启动本地站点（`PORT=3014 node .next/standalone/server.js`），再运行 `node scripts/make-tutorial-video-pro.mjs`
+  - 搭建教程版（**高清 1920x1080 步骤卡片 + 男声配音 + 中文字幕**，教新人从零搭建）：`node scripts/make-build-video.mjs`
