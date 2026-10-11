@@ -193,7 +193,7 @@ for (let i = 0; i < STEPS.length; i++) {
   const wav = `${WORKDIR}/audio${i}.wav`;
   await tts(STEPS[i].narration, mp3);
   run(`ffmpeg -y -v error -i "${mp3}" -ar 44100 -ac 2 "${wav}"`);
-  durations.push(getDuration(wav) + 2);
+  durations.push(getDuration(wav)); // 每步画面时长 = 配音时长（严格同步）
   console.log(`  [${i + 1}/${STEPS.length}] ${STEPS[i].title}（${durations[i].toFixed(1)}s）`);
 }
 
@@ -223,16 +223,28 @@ await page.addInitScript(() => {
   });
 });
 
+// 计算每步计划开始时间（相对视频起点，秒）——画面与配音严格同步
+const planStart = [];
+let acc = 0;
+for (let i = 0; i < STEPS.length; i++) {
+  planStart.push(acc);
+  acc += durations[i];
+}
+const t0 = Date.now();
+
 for (let i = 0; i < STEPS.length; i++) {
   const step = STEPS[i];
   console.log(`  📄 打开：${step.barUrl}`);
   await openStep(page, step);
   await injectBrowserUI(page, i);
-  if (step.action === 'none') {
-    // 无额外操作
-  }
-  await page.waitForTimeout(Math.round(durations[i] * 1000));
+  // 等待到该步计划结束时间（绝对时间控制）
+  const endMs = t0 + (planStart[i] + durations[i]) * 1000;
+  const remain = endMs - Date.now();
+  if (remain > 0) await page.waitForTimeout(remain);
 }
+
+// 最后多停留 1 秒，让结尾有静音过渡（字幕已结束）
+await page.waitForTimeout(1000);
 
 const video = page.video();
 await context.close();
@@ -269,12 +281,10 @@ Style: Default,Microsoft YaHei,44,&H00FFFFFF,&H000000FF,&H00000000,&H90000000,0,
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 `;
-let cursor = 0;
 for (let i = 0; i < STEPS.length; i++) {
-  const start = cursor;
-  const end = cursor + durations[i];
+  const start = planStart[i];
+  const end = planStart[i] + durations[i];
   ass += `Dialogue: 0,${toAssTime(start)},${toAssTime(end)},Default,,0,0,0,,${wrapNarration(STEPS[i].narration)}\n`;
-  cursor = end;
 }
 fs.writeFileSync(`${WORKDIR}/subs.ass`, ass, 'utf8');
 
