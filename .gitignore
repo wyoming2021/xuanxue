@@ -57,3 +57,5 @@ skills/**/node_modules
 
 # 自动生成的教程视频（可重新生成，不入库）
 tutorial-video.mp4
+tutorial-video-pro.mp4
+preview-frame.png
