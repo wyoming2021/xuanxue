@@ -183,11 +183,41 @@ pm2 restart xuanyu   # 重启
 
 ---
 
-## 5. AI 每日文章：低配 VPS 方案（模型跑本地）
+## 5. AI 每日文章：云端免费模型（推荐，0 成本）
+
+网站内置 `/api/cron/generate-article` 定时任务，每天自动生成并发布一篇文章。**不需要自己电脑跑模型**，用云端免费 API 即可（复刻站点的用户也适用）。
+
+### 5.1 推荐：硅基流动 SiliconFlow（免费）
+
+1. 注册：`https://siliconflow.cn`（手机号实名，注册送额度）；
+2. 左侧「API 密钥」→ 创建密钥，复制 `sk-...`；
+3. 在 VPS 部署时（或手动编辑 `.env.local`）填写：
+
+```ini
+AI_API_KEY=sk-你的密钥
+AI_BASE_URL=https://api.siliconflow.cn/v1
+AI_MODEL=Qwen/Qwen2.5-7B-Instruct
+CRON_SECRET=任意随机字符串（部署脚本会自动生成）
+```
+
+4. 模型选择控制台里**标注 `FREE` 的模型**（如 `Qwen/Qwen2.5-7B-Instruct`、`Qwen/Qwen2.5-14B-Instruct`），不会扣费；
+5. 配置完成后，`vps-deploy.sh` 会自动添加每日 08:00 的 crontab 定时任务，每天自动生成一篇并发布。
+
+> 部署脚本 `vps-deploy.sh` 已内置该默认值：只要填了 `AI_API_KEY`，没填地址/模型时自动用硅基流动免费配置。
+
+### 5.2 其他免费/低成本云端备选
+
+- **阿里云百炼**：`https://dashscope.aliyuncs.com/compatible-mode/v1`，模型 `qwen-turbo`（新用户送额度，用完后按量计费，很便宜）；
+- **智谱 GLM**：`https://open.bigmodel.cn/api/paas/v4`，模型 `glm-4-flash`（有免费额度，用完后可能收费）；
+- **本地电脑生成 + 远程发布**：见第 6 节。
+
+---
+
+## 6. AI 每日文章：低配 VPS 方案（模型跑本地）
 
 如果你的 VPS 内存较小（1-2G）跑不动本地大模型，但你的**本地电脑**有模型（例如 qoder / Ollama 等 OpenAI 兼容服务，如 `http://127.0.0.1:18082/v1`），可以让**本地电脑生成文章，定时推送到网站发布**——VPS 完全不需要 AI 配置，只负责接收文章写入数据库。
 
-### 5.1 原理
+### 6.1 原理
 
 ```text
 本地电脑                          VPS 网站
@@ -197,7 +227,7 @@ qwen 模型生成文章  ──HTTP POST──►  /api/articles/publish  ──
 
 网站已提供公开接口 `POST /api/articles/publish`，请求头带 `Authorization: Bearer <CRON_SECRET>` 即可发布文章（`CRON_SECRET` 与定时任务同密钥）。
 
-### 5.2 在本地电脑配置
+### 6.2 在本地电脑配置
 
 把本地电脑的项目 `.env.local`（或环境变量）配置为：
 
@@ -209,7 +239,7 @@ NEXT_PUBLIC_SITE_URL=https://你的域名
 CRON_SECRET=你的VPS网站上的CRON_SECRET
 ```
 
-### 5.3 手动发布一篇
+### 6.3 手动发布一篇
 
 ```bash
 node scripts/local-publish.mjs                    # 随机主题
@@ -218,7 +248,7 @@ node scripts/local-publish.mjs "2026年射手座运势"  # 指定主题
 
 脚本会：调用本地模型生成 400-600 字文章 → 解析为 JSON → POST 到 `/api/articles/publish` → 打印发布结果。
 
-### 5.4 每天定时自动发布
+### 6.4 每天定时自动发布
 
 **Windows（任务计划程序）**：
 
@@ -232,7 +262,7 @@ schtasks /Create /TN "XuanyuPublish" /TR "node D:\xuan-yu\scripts\local-publish.
 0 8 * * * cd /path/to/xuan-yu && node scripts/local-publish.mjs >> /tmp/xuanyu-publish.log 2>&1
 ```
 
-### 5.5 注意
+### 6.5 注意
 
 - `CRON_SECRET` 是发布密钥：**能发布文章 = 能改写站点内容**，请妥善保管，不要公开。
 - 本地模型生成质量因模型而异（如编程助手模型可能跑题），建议先用指定主题手动试几篇，选内容正常的模型。

@@ -171,9 +171,9 @@ ask "⑦ QQ 邮箱 SMTP 授权码"          XUANYU_QQ_CODE      0
 ask "⑧ 虎皮椒 APP_ID（支付可选）"     XUANYU_HUPIJAO_APPID 0
 ask "⑨ 虎皮椒 APP_SECRET"            XUANYU_HUPIJAO_SECRET 0
 ask "⑩ 文章管理员邮箱（ADMIN_EMAIL）"  XUANYU_ADMIN_EMAIL   0
-ask "⑪ AI_API_KEY（可选，自动写文章）"  XUANYU_AI_API_KEY    0
-ask "⑫ AI_BASE_URL（可选，默认 deepseek）" XUANYU_AI_BASE_URL 0
-ask "⑬ AI_MODEL（可选，默认 deepseek-chat）" XUANYU_AI_MODEL  0
+ask "⑪ AI_API_KEY（可选，自动写文章，推荐硅基流动免费模型 siliconflow.cn）"  XUANYU_AI_API_KEY    0
+ask "⑫ AI_BASE_URL（可选，默认 https://api.siliconflow.cn/v1）" XUANYU_AI_BASE_URL 0
+ask "⑬ AI_MODEL（可选，默认 Qwen/Qwen2.5-7B-Instruct）" XUANYU_AI_MODEL  0
 
 # 派生项
 DOMAIN="${XUANYU_DOMAIN:-}"
@@ -188,9 +188,11 @@ fi
 [[ -n "${XUANYU_HUPIJAO_APPID:-}" ]] && echo "HUPIJAO_APP_ID=$XUANYU_HUPIJAO_APPID" >> "$ENV_FILE"
 [[ -n "${XUANYU_HUPIJAO_SECRET:-}" ]] && echo "HUPIJAO_APP_SECRET=$XUANYU_HUPIJAO_SECRET" >> "$ENV_FILE"
 [[ -n "${XUANYU_ADMIN_EMAIL:-}" ]] && echo "ADMIN_EMAIL=$XUANYU_ADMIN_EMAIL" >> "$ENV_FILE"
-[[ -n "${XUANYU_AI_API_KEY:-}" ]] && echo "AI_API_KEY=$XUANYU_AI_API_KEY" >> "$ENV_FILE"
-[[ -n "${XUANYU_AI_BASE_URL:-}" ]] && echo "AI_BASE_URL=$XUANYU_AI_BASE_URL" >> "$ENV_FILE"
-[[ -n "${XUANYU_AI_MODEL:-}" ]] && echo "AI_MODEL=$XUANYU_AI_MODEL" >> "$ENV_FILE"
+if [[ -n "${XUANYU_AI_API_KEY:-}" ]]; then
+  echo "AI_API_KEY=$XUANYU_AI_API_KEY" >> "$ENV_FILE"
+  echo "AI_BASE_URL=${XUANYU_AI_BASE_URL:-https://api.siliconflow.cn/v1}" >> "$ENV_FILE"
+  echo "AI_MODEL=${XUANYU_AI_MODEL:-Qwen/Qwen2.5-7B-Instruct}" >> "$ENV_FILE"
+fi
 
 # 校验必填
 if ! grep -q '^NEXT_PUBLIC_SUPABASE_URL=.\+' "$ENV_FILE" || ! grep -q '^SUPABASE_SERVICE_ROLE_KEY=.\+' "$ENV_FILE"; then
