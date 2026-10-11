@@ -85,6 +85,10 @@ npm run dev
 | `NEXT_PUBLIC_SITE_NAME` | 可选 | 站点名（默认"玄语"，见第 7 节品牌替换） |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | 可选 | 错误页联系邮箱 |
 | `ADMIN_EMAIL` | 文章功能必填 | 站长邮箱，登录该邮箱的用户可进入 `/admin/articles` 发布文章 |
+| `AI_API_KEY` | AI 写文章必填 | DeepSeek 等 OpenAI 兼容接口的 API Key，启用「AI 自动写文章」与「每日自动更新」 |
+| `AI_BASE_URL` | 可选 | AI 接口地址，默认 `https://api.deepseek.com/v1` |
+| `AI_MODEL` | 可选 | 模型名，默认 `deepseek-chat` |
+| `CRON_SECRET` | 每日更新必填 | 定时任务鉴权密钥，VPS 部署脚本自动生成并配置 crontab |
 
 ## 6. 部署上线（Vercel 为例）
 

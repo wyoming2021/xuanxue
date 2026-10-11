@@ -43,6 +43,7 @@ cd deploy-wizard && npm install && npm start
 - **会员体系**：邮箱验证码登录，日 / 月 / 年卡会员，跨设备同步
 - **支付**：虎皮椒（xunhupay）网关，服务端产品目录定价
 - **文章发布**：站长后台写文章（`/admin/articles`），前台列表/详情展示（`/articles`），配置 `ADMIN_EMAIL` 启用
+- **AI 自动写文章**：后台输入主题，AI 自动生成并发布（`/admin/articles/generate`）；可配置每日 08:00 自动更新一篇文章（需 `AI_API_KEY`，支持 DeepSeek 等 OpenAI 兼容接口）
 
 ## 技术栈
 

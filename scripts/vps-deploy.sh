@@ -92,6 +92,12 @@ if [[ -f "$ENV_FILE" ]] && grep -q '^AUTH_SECRET=' "$ENV_FILE"; then
 else
   AUTH_SECRET="$(openssl rand -hex 32)"
 fi
+# 定时任务密钥：已有则保留，否则自动生成
+if [[ -f "$ENV_FILE" ]] && grep -q '^CRON_SECRET=' "$ENV_FILE"; then
+  CRON_SECRET="$(grep '^CRON_SECRET=' "$ENV_FILE" | cut -d= -f2-)"
+else
+  CRON_SECRET="$(openssl rand -hex 16)"
+fi
 
 # ask：$1=提示 $2=变量名 $3=是否必填(1/0)
 ask() {
@@ -121,10 +127,11 @@ ask() {
   fi
 }
 
-# 开始写 .env.local（覆盖旧文件，AUTH_SECRET 已保留）
+# 开始写 .env.local（覆盖旧文件，AUTH_SECRET / CRON_SECRET 已保留）
 > "$ENV_FILE"
 echo "# 玄语站配置（由 vps-deploy.sh 自动生成）" >> "$ENV_FILE"
 echo "AUTH_SECRET=$AUTH_SECRET" >> "$ENV_FILE"
+echo "CRON_SECRET=$CRON_SECRET" >> "$ENV_FILE"
 
 # ---- 可选：提供 Supabase Token 时全自动创建并初始化数据库 ----
 if [[ -n "${XUANYU_SUPABASE_TOKEN:-}" ]]; then
@@ -164,6 +171,9 @@ ask "⑦ QQ 邮箱 SMTP 授权码"          XUANYU_QQ_CODE      0
 ask "⑧ 虎皮椒 APP_ID（支付可选）"     XUANYU_HUPIJAO_APPID 0
 ask "⑨ 虎皮椒 APP_SECRET"            XUANYU_HUPIJAO_SECRET 0
 ask "⑩ 文章管理员邮箱（ADMIN_EMAIL）"  XUANYU_ADMIN_EMAIL   0
+ask "⑪ AI_API_KEY（可选，自动写文章）"  XUANYU_AI_API_KEY    0
+ask "⑫ AI_BASE_URL（可选，默认 deepseek）" XUANYU_AI_BASE_URL 0
+ask "⑬ AI_MODEL（可选，默认 deepseek-chat）" XUANYU_AI_MODEL  0
 
 # 派生项
 DOMAIN="${XUANYU_DOMAIN:-}"
@@ -178,6 +188,9 @@ fi
 [[ -n "${XUANYU_HUPIJAO_APPID:-}" ]] && echo "HUPIJAO_APP_ID=$XUANYU_HUPIJAO_APPID" >> "$ENV_FILE"
 [[ -n "${XUANYU_HUPIJAO_SECRET:-}" ]] && echo "HUPIJAO_APP_SECRET=$XUANYU_HUPIJAO_SECRET" >> "$ENV_FILE"
 [[ -n "${XUANYU_ADMIN_EMAIL:-}" ]] && echo "ADMIN_EMAIL=$XUANYU_ADMIN_EMAIL" >> "$ENV_FILE"
+[[ -n "${XUANYU_AI_API_KEY:-}" ]] && echo "AI_API_KEY=$XUANYU_AI_API_KEY" >> "$ENV_FILE"
+[[ -n "${XUANYU_AI_BASE_URL:-}" ]] && echo "AI_BASE_URL=$XUANYU_AI_BASE_URL" >> "$ENV_FILE"
+[[ -n "${XUANYU_AI_MODEL:-}" ]] && echo "AI_MODEL=$XUANYU_AI_MODEL" >> "$ENV_FILE"
 
 # 校验必填
 if ! grep -q '^NEXT_PUBLIC_SUPABASE_URL=.\+' "$ENV_FILE" || ! grep -q '^SUPABASE_SERVICE_ROLE_KEY=.\+' "$ENV_FILE"; then
@@ -242,6 +255,19 @@ EOF
   fi
 else
   info "跳过 Nginx/HTTPS（未提供域名或 XUANYU_SKIP_HTTPS=1）。"
+fi
+
+# ---- 6. 配置每日自动生成文章（crontab，可选）----
+CRON_SCRIPT="$APP_DIR/scripts/cron-daily.sh"
+if [[ -n "$DOMAIN" && -n "$CRON_SECRET" && -f "$CRON_SCRIPT" ]]; then
+  chmod +x "$CRON_SCRIPT"
+  # 移除旧的定时任务行，再添加每天 08:00 执行
+  (crontab -l 2>/dev/null | grep -v 'xuanyu-cron' || true; echo "0 8 * * * $CRON_SCRIPT # xuanyu-cron") | crontab -
+  if [[ -n "${XUANYU_AI_API_KEY:-}" ]]; then
+    info "已配置每日 08:00 自动生成玄学文章（crontab）。"
+  else
+    info "已配置每日 08:00 定时任务（但未填 AI_API_KEY，文章生成会跳过，可之后在 .env.local 补充）。"
+  fi
 fi
 
 echo ""
