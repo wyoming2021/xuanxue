@@ -77,15 +77,35 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
         )}
 
         <div className="prose prose-sm max-w-none text-[15px] leading-8 text-[#1c1917] dark:text-[#d6d3d1]">
-          {article.content.split('\n').map((line, i) =>
-            line.trim() ? (
+          {article.content.split('\n').map((line, i) => {
+            const trimmed = line.trim();
+            if (!trimmed) return <div key={i} className="h-4" />;
+            if (trimmed.startsWith('## ')) {
+              return (
+                <h2
+                  key={i}
+                  className="mb-3 mt-6 font-serif text-xl font-bold text-[#1c1917] dark:text-[#e7e5e4]"
+                >
+                  {trimmed.slice(3)}
+                </h2>
+              );
+            }
+            if (trimmed.startsWith('# ')) {
+              return (
+                <h2
+                  key={i}
+                  className="mb-3 mt-6 font-serif text-xl font-bold text-[#1c1917] dark:text-[#e7e5e4]"
+                >
+                  {trimmed.slice(2)}
+                </h2>
+              );
+            }
+            return (
               <p key={i} className="mb-4">
                 {line}
               </p>
-            ) : (
-              <div key={i} className="h-4" />
-            ),
-          )}
+            );
+          })}
         </div>
       </article>
 

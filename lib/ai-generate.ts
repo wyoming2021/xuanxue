@@ -183,16 +183,16 @@ export async function generateArticle(topic?: string): Promise<GeneratedArticle>
 
   const finalTopic = topic?.trim() || randomTopic();
 
-  const prompt = `你是资深玄学内容编辑。请写一篇中文玄学文章。
+  const prompt = `你是资深玄学内容编辑。请写一篇适合搜索引擎收录的中文玄学长文。
 主题：${finalTopic}
 要求：
-- 标题：10-20 字，吸引人
-- 摘要：一句话，40 字以内
-- 正文：400-600 字，分 4-6 个自然段，段落之间用空行分隔
-- 内容涉及八字、塔罗、星座、五行、紫微等传统文化知识，语气温和理性，给出具体可读的解读
+- 标题：15-30 字，吸引人且包含主题关键词
+- 摘要：一段话，60 字以内
+- 正文：1200-1500 字，分 5-6 个小节，每个小节用 ## 小标题（如 ## 今日整体运势、## 爱情运势、## 事业运势、## 财运指南、## 健康提醒）
+- 每节内容具体可读，涉及八字、塔罗、星座、五行、紫微等传统文化知识，语气温和理性
 - 结尾加一段：以上内容基于传统命理与占卜文化，仅供娱乐参考。
 - 只返回 JSON，不要 markdown 代码块：
-{"title":"文章标题","summary":"一句话摘要","content":"段落1\\n\\n段落2\\n\\n..."}`;
+{"title":"文章标题","summary":"一句话摘要","content":"## 小节标题\\n\\n段落内容\\n\\n## 小节标题\\n\\n..."}`;
 
   const { status, data } = await callChatCompletion(baseUrl, apiKey, model, [
     { role: 'user', content: prompt },
